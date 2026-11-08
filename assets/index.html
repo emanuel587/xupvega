@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="dark"><meta name="theme-color" content="#0b1118">
+<title>Xuper TV NF — Vega OS</title>
+<style>/* ESTILOS ORIGINALES ai_studio_code.html (referencia del usuario). */
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      outline: none;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #0b1118;
+      color: #ffffff;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       BARRA SUPERIOR (HEADER ORIGINAL XUPER TV)
+       ========================================================================== */
+    .top-bar {
+      height: 48px;
+      background: #0d141e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      font-size: 20px;
+      font-weight: 900;
+      font-style: italic;
+      cursor: pointer;
+    }
+    .brand .logo-x { color: #0077ff; font-size: 24px; }
+    .brand .logo-tv { font-size: 11px; margin-left: 2px; vertical-align: super; }
+    .brand .badge-nf {
+      background: #e50914;
+      font-size: 8px;
+      font-weight: 700;
+      font-style: normal;
+      padding: 1px 4px;
+      border-radius: 2px;
+      margin-left: 4px;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: #9cb1c9;
+      font-size: 15px;
+    }
+
+    .top-btn {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .top-btn:hover, .top-btn.active {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .status-signal {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #2ed573;
+    }
+
+    .time-display {
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 500;
+      margin-left: 6px;
+    }
+
+    /* CONTENEDOR DE PANTALLAS */
+    .app-screen {
+      display: none;
+      position: absolute;
+      top: 48px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+    }
+
+    .app-screen.active {
+      display: flex;
+    }
+
+    /* ==========================================================================
+       SIDEBAR LATERAL
+       ========================================================================== */
+    .sidebar {
+      background: #0d141e;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 0;
+      gap: 2px;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255, 255, 255, 0.04);
+      width: 170px;
+      transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 900;
+    }
+
+    .sidebar.collapsed {
+      width: 58px;
+    }
+    .sidebar.collapsed .side-item span {
+      display: none;
+    }
+
+    .side-item {
+      display: flex;
+      align-items: center;
+      height: 42px;
+      padding: 0 16px;
+      color: #7b8c9e;
+      font-size: 12px;
+      font-weight: 700;
+      gap: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .side-item i { font-size: 16px; min-width: 24px; text-align: center; }
+    .side-item:hover, .side-item.active {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .side-item.active { border-left: 3px solid #0077ff; }
+
+    /* CONTENIDO CON SCROLL SUAVE */
+    .content-area {
+      flex: 1;
+      padding: 14px 20px 40px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      scroll-behavior: smooth;
+    }
+
+    /* ==========================================================================
+       1. PANTALLA PRINCIPAL: HERO BANNERS + CATÁLOGO
+       ========================================================================== */
+    .hero-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      height: 290px;
+      flex-shrink: 0;
+    }
+
+    .hero-box {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #141c26;
+      cursor: pointer;
+    }
+    .hero-box img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-box .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(8, 12, 17, 0.95) 0%, rgba(8, 12, 17, 0.25) 50%, transparent 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 18px 20px;
+    }
+    .hero-box h1 { font-size: 22px; font-weight: 900; text-transform: uppercase; line-height: 1.15; }
+    .hero-box .subtitle { font-size: 12px; font-weight: 700; color: #b0bec5; margin-top: 4px; }
+    .dots-indicator { display: flex; gap: 4px; margin-top: 6px; }
+    .dots-indicator span { width: 6px; height: 6px; border-radius: 50%; background: #546e7a; }
+    .dots-indicator span.active { background: #2ed573; }
+
+    .section-title { font-size: 15px; font-weight: 700; color: #f1f2f6; margin-bottom: 10px; }
+    .cards-row { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px; }
+    .cards-row::-webkit-scrollbar { display: none; }
+
+    .card-landscape {
+      flex: 0 0 195px;
+      height: 110px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #141c26;
+      cursor: pointer;
+      position: relative;
+    }
+    .card-landscape img { width: 100%; height: 100%; object-fit: cover; }
+    .card-landscape .badge-title {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 4px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      background: rgba(0,0,0,0.8);
+      text-align: center;
+    }
+
+    /* PÓSTERES VERTICALES */
+    .card-poster {
+      flex: 0 0 148px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .card-poster .img-wrap {
+      width: 100%;
+      height: 220px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: #141c26;
+      border: 2.5px solid transparent;
+      transition: all 0.15s ease-in-out;
+      position: relative;
+    }
+    .card-poster .img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+    .card-poster.focused .img-wrap, .card-poster:hover .img-wrap {
+      border-color: #2ed573;
+      box-shadow: 0 0 15px rgba(46, 213, 115, 0.6);
+      transform: scale(1.02);
+    }
+    .card-poster .title {
+      font-size: 13px;
+      color: #cfd8dc;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==========================================================================
+       CATÁLOGOS: PELÍCULAS Y SERIES (VOD & SERIES SCREENS)
+       ========================================================================== */
+    .vod-screen-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      background: #0b1118;
+    }
+
+    .vod-category-sidebar {
+      width: 210px;
+      background: #0d141e;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      padding: 12px 0;
+      flex-shrink: 0;
+    }
+    .vod-category-header {
+      padding: 6px 18px 12px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #9cb1c9;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      margin-bottom: 6px;
+    }
+    .vod-category-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .vod-cat-item {
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8fa0b5;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, color 0.15s;
+    }
+    .vod-cat-item:hover, .vod-cat-item.active {
+      color: #ffffff;
+      background: rgba(0, 119, 255, 0.15);
+      border-left-color: #2ed573;
+    }
+    .vod-cat-item .cat-counter {
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 10px;
+      color: #9cb1c9;
+    }
+
+    .vod-catalog-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px 24px 40px 24px;
+    }
+    .vod-catalog-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .vod-catalog-header-bar h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #f1f2f6;
+    }
+    .vod-catalog-header-bar .vod-stats {
+      font-size: 13px;
+      color: #9cb1c9;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .vod-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 18px 14px;
+    }
+
+    .vod-grid .card-poster {
+      flex: none;
+      width: 100%;
+    }
+    .vod-grid .card-poster .img-wrap {
+      height: 210px;
+    }
+    .card-poster .badge-score-left {
+      position: absolute;
+      bottom: 6px; left: 6px;
+      background: rgba(0,0,0,0.8);
+      color: #2ed573;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid rgba(46, 213, 115, 0.3);
+    }
+    .card-poster .badge-hd-right {
+      position: absolute;
+      top: 6px; right: 6px;
+      background: #0077ff;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    .card-poster .badge-seasons-right {
+      position: absolute;
+      bottom: 6px; right: 6px;
+      background: rgba(13, 20, 30, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    /* ==========================================================================
+       CANALES TV EN VIVO & GUÍA EPG
+       ========================================================================== */
+    .live-player-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+    .fullscreen-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+    .player-stats-corner {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      display: flex;
+      gap: 15px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+      z-index: 40;
+    }
+    .channel-drawer {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 330px;
+      background: rgba(13, 20, 30, 0.94);
+      backdrop-filter: blur(8px);
+      display: flex;
+      z-index: 50;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .drawer-tabs {
+      width: 50px;
+      background: rgba(8, 12, 17, 0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 25px;
+      gap: 22px;
+      color: #7b8c9e;
+      font-size: 16px;
+    }
+    .drawer-list-wrap { flex: 1; display: flex; flex-direction: column; padding: 15px 0; }
+    .country-header {
+      padding: 0 16px 10px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .channel-rows-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .ch-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #cfd8dc;
+      border-left: 3px solid transparent;
+    }
+    .ch-row:hover, .ch-row.active {
+      background: rgba(0, 119, 255, 0.2);
+      color: #ffffff;
+      border-left-color: #2ed573;
+    }
+    .ch-row .ch-badge {
+      background: #0077ff;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+    .drawer-footer-hint {
+      padding: 10px 15px;
+      font-size: 11px;
+      color: #90a4ae;
+      background: rgba(0, 0, 0, 0.4);
+      line-height: 1.3;
+    }
+
+    .live-program-banner {
+      position: absolute;
+      bottom: 60px;
+      left: 350px;
+      max-width: 550px;
+      background: rgba(13, 20, 30, 0.85);
+      backdrop-filter: blur(6px);
+      padding: 14px 18px;
+      border-radius: 6px;
+      z-index: 30;
+    }
+    .live-program-banner .tag { font-size: 11px; font-weight: 900; color: #90a4ae; }
+    .live-program-banner .title { font-size: 14px; font-weight: 800; margin: 4px 0 2px 0; line-height: 1.2; }
+    .live-program-banner .desc { font-size: 11px; color: #b0bec5; }
+
+    .live-categories-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 48px;
+      background: rgba(8, 12, 17, 0.95);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 15px;
+      z-index: 35;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .cat-chip {
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #8fa0b5;
+      cursor: pointer;
+    }
+    .cat-chip.active, .cat-chip:hover { background: #142233; color: #2ed573; }
+    .channel-now-tag { margin-left: auto; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+
+    /* ==========================================================================
+       FICHAS DE DETALLES (PELÍCULAS Y SERIES)
+       ========================================================================== */
+    .details-view-screen {
+      background: #10161f;
+      padding: 24px 36px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+    }
+    .back-nav-bar {
+      margin-bottom: 12px;
+    }
+    .btn-back {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #cfd8dc;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-back:hover {
+      background: #0077ff;
+      color: #fff;
+    }
+
+    .details-top-grid { display: flex; justify-content: space-between; gap: 40px; }
+    .details-col-info { flex: 1; max-width: 65%; display: flex; flex-direction: column; gap: 10px; }
+    
+    .title-rating-header { display: flex; align-items: center; gap: 15px; }
+    .title-rating-header h1 { font-size: 32px; font-weight: 800; }
+    .title-rating-header .score { color: #2ed573; font-size: 22px; font-weight: bold; }
+
+    .sub-meta-line { font-size: 13px; color: #8fa0b5; }
+    .code-badge-green { color: #2ed573; font-size: 15px; font-weight: bold; }
+    .meta-p { font-size: 13px; color: #cfd8dc; line-height: 1.4; }
+    .meta-p strong { color: #8fa0b5; }
+    .tag-badge { border: 1px solid rgba(255, 255, 255, 0.3); padding: 2px 10px; border-radius: 12px; font-size: 11px; margin-right: 4px; }
+    .text-more { color: #2ed573; cursor: pointer; margin-left: 4px; font-weight: bold; }
+
+    .details-actions-bar { display: flex; gap: 12px; margin: 12px 0; }
+    .btn-action-ui {
+      background: #202b3a;
+      border: none;
+      color: #cfd8dc;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .btn-action-ui:hover { background: #2a3a4e; color: #fff; }
+
+    /* Estilos específicos de Serie */
+    .episodes-bar-row { display: flex; align-items: center; gap: 15px; position: relative; margin-top: 6px; }
+    .dropdown-season {
+      position: relative;
+      background: #202b3a;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .season-popover {
+      display: none;
+      position: absolute;
+      bottom: 45px; left: 0; width: 150px;
+      background: #17212d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+      z-index: 100;
+    }
+    .season-popover.show { display: flex; flex-direction: column; }
+    .season-popover-item { padding: 9px 12px; font-size: 13px; cursor: pointer; color: #b0bec5; display: flex; justify-content: space-between; }
+    .season-popover-item:hover, .season-popover-item.active { background: #223042; color: #fff; }
+
+    .episodes-cells-list { display: flex; gap: 8px; overflow-x: auto; max-width: 480px; padding: 4px 0; }
+    .ep-num-cell {
+      background: #202b3a;
+      width: 44px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: bold; border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .ep-num-cell:hover, .ep-num-cell.active { background: #2ed573; color: #0b1118; }
+
+    .details-right-banner { width: 320px; height: 215px; }
+    .details-media-box {
+      width: 100%; height: 100%;
+      border-radius: 8px;
+      background: #141c26;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .platform-logo-text { font-size: 55px; font-weight: 900; color: #e0e0e0; letter-spacing: -2px; }
+
+    .bottom-slider-row { display: flex; gap: 15px; overflow-x: auto; padding-top: 15px; }
+    .bottom-card-rec {
+      flex: 0 0 135px;
+      display: flex; flex-direction: column; gap: 5px; cursor: pointer;
+    }
+    .bottom-card-rec .poster-wrap {
+      position: relative; width: 100%; height: 195px; border-radius: 5px; overflow: hidden; background: #182230;
+    }
+    .bottom-card-rec .poster-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .badge-score-left { position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.7); color: #2ed573; font-size: 11px; font-weight: bold; padding: 1px 4px; border-radius: 2px; }
+    .badge-cc-right { position: absolute; bottom: 5px; right: 5px; background: #ff9800; color: #fff; font-size: 9px; font-weight: 900; padding: 1px 3px; border-radius: 2px; }
+    .bottom-card-rec .caption-rec { font-size: 12px; color: #cfd8dc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .vod-play-circle {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .vod-play-circle:hover { background: #2ed573; border-color: #2ed573; color: #0b1118; transform: scale(1.1); }
+
+    /* ==========================================================================
+       PLAYERS (LIVE Y VOD SEEKBAR)
+       ========================================================================== */
+    .osd-bottom-dock {
+      position: absolute;
+      bottom: 20px; left: 20px; right: 20px;
+      background: rgba(13, 20, 30, 0.9);
+      backdrop-filter: blur(8px);
+      border-radius: 6px;
+      padding: 12px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      z-index: 50;
+    }
+    .osd-left-meta { display: flex; align-items: center; gap: 18px; }
+    .osd-big-logo { font-size: 26px; font-weight: 900; color: #2ed573; }
+    .osd-texts-col { display: flex; flex-direction: column; gap: 3px; }
+    .osd-title-tag { font-size: 16px; font-weight: bold; display: flex; gap: 8px; }
+    .osd-subline { font-size: 12px; display: flex; gap: 10px; align-items: center; }
+    .osd-subline .green { color: #2ed573; }
+    .osd-subline .heart { color: #ff9800; font-size: 10px; }
+    .osd-hints-keys { font-size: 11px; color: #90a4ae; display: flex; gap: 8px; align-items: center; }
+    .osd-hints-keys .k-box { background: #37474f; color: #fff; padding: 1px 5px; border-radius: 3px; }
+    
+    .osd-right-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+    .osd-time-prog { font-size: 12px; color: #b0bec5; font-weight: bold; }
+    .osd-icons-tools { display: flex; gap: 14px; font-size: 15px; color: #cfd8dc; }
+
+    .vod-bottom-overlay {
+      position: absolute;
+      bottom: 25px; left: 30px; right: 30px;
+      background: rgba(13, 20, 30, 0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 8px;
+      padding: 16px 24px;
+      display: flex; align-items: center; gap: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      z-index: 50;
+    }
+    .vod-meta-poster {
+      width: 65px; height: 95px; border-radius: 4px; overflow: hidden; background: #1e293b;
+      position: relative; flex-shrink: 0;
+    }
+    .vod-meta-poster img { width: 100%; height: 100%; object-fit: cover; }
+    .vod-meta-poster .caption { position: absolute; bottom: 2px; left: 0; right: 0; font-size: 8px; font-weight: 900; text-align: center; background: rgba(0,0,0,0.8); }
+
+    .vod-seek-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .vod-media-title { font-size: 16px; font-weight: 700; color: #fff; }
+    .seek-slider-row { display: flex; align-items: center; gap: 12px; font-size: 12px; font-weight: bold; color: #cfd8dc; }
+    .timeline-bar { flex: 1; height: 4px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; position: relative; }
+    .timeline-fill { height: 100%; width: 2%; background: #2ed573; position: relative; }
+    .timeline-cursor { width: 12px; height: 12px; border-radius: 50%; background: #2ed573; position: absolute; right: -6px; top: -4px; box-shadow: 0 0 6px rgba(46, 213, 115, 0.8); }
+    .remote-hints-row { display: flex; gap: 18px; font-size: 11px; color: #90a4ae; margin-top: 4px; }
+    .remote-hints-row .btn-k { background: #fff; color: #0b1118; padding: 1px 5px; border-radius: 3px; font-weight: bold; margin-right: 4px; font-size: 10px; }
+  
+
+/* Integración Windows: mantiene exactamente la densidad, colores y estructuras de la referencia.
+   Este bloque únicamente añade accesibilidad, estados dinámicos y adaptación al tamaño de ventana. */
+:root { color-scheme:dark; }
+button,input { font:inherit; }
+button { border:0; color:inherit; background:transparent; cursor:pointer; }
+button:focus-visible,input:focus-visible { outline:2px solid #2ed573; outline-offset:3px; }
+[hidden] { display:none !important; }
+.svg-defs { position:absolute;width:0;height:0;overflow:hidden; }
+svg:not(.svg-defs) { width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0; }
+.top-bar { gap:14px; }
+.brand { background:none;border:0;white-space:nowrap; }
+.top-controls { gap:12px;min-width:0; }
+.top-btn { display:grid;place-items:center;width:30px;height:30px; flex:none;color:#9cb1c9; }
+.top-btn:hover,.top-btn.active { color:#fff; }
+.header-divider { height:16px;width:1px;background:rgba(255,255,255,.12); }
+.header-search { display:flex;align-items:center;gap:8px;min-width:150px;width:clamp(150px,23vw,320px);height:31px;padding:0 8px;border:1px solid rgba(255,255,255,.11);background:#131f2c;border-radius:5px; }
+.header-search svg { color:#8698ad;flex:none; }
+.header-search input { min-width:0;width:100%;background:transparent;border:0;color:#fff;font-size:12px;outline:0; }
+.header-search input::placeholder { color:#8394a8; }
+.header-search button { color:#8fa5bc;padding:2px 5px;border-left:1px solid rgba(255,255,255,.12);font-size:14px; }
+.signal-dot { display:block;width:7px;height:7px;border-radius:50%;background:#2ed573;box-shadow:0 0 10px rgba(46,213,115,.32); }
+.time-display { font-size:13px;white-space:nowrap; }
+.app-body { position:absolute;inset:48px 0 0;display:flex;overflow:hidden; }
+.app-sidebar { height:100%;min-height:0;flex-shrink:0; }
+.app-sidebar .side-item svg { width:18px;height:18px;min-width:24px; }
+.app-sidebar .side-item.active { padding-left:13px; }
+.sidebar-spacer { flex:1; }
+.sidebar-status { padding:13px 12px;border-top:1px solid rgba(255,255,255,.06);font-size:10px;line-height:1.45;color:#8095ad;overflow-wrap:anywhere;max-height:88px;overflow:auto; }
+.screen-workspace { position:relative;flex:1;min-width:0;height:100%;overflow:hidden; }
+.screen-workspace>.app-screen { top:0;left:0;right:0;bottom:0; }
+.content-area { gap:24px; }
+.hero-box { background:linear-gradient(145deg,#203146,#0d141e); }
+.hero-box:focus-within,.card-poster:focus-within .img-wrap,.card-landscape:focus-within { outline:2px solid #2ed573;outline-offset:1px; }
+.hero-box>.cover-photo { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75; }
+.hero-box .overlay { background:linear-gradient(0deg,rgba(8,12,17,.96),rgba(8,12,17,.14) 78%);pointer-events:none; }
+.hero-box .overlay h1 { font-size:clamp(18px,2vw,25px);max-width:96%; }
+.hero-hit { position:absolute;inset:0;width:100%;z-index:2; }
+.hero-box:hover>.cover-photo { transform:scale(1.025);transition:transform .35s ease; }
+.hero-no-image,.poster-fallback { width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.20);background:radial-gradient(circle at 50% 20%,#23415b,transparent 65%),linear-gradient(125deg,#1b2838,#0d141e);letter-spacing:.15em;font-weight:900;text-align:center; }
+.hero-no-image { font-size:42px; }
+.poster-fallback { font-size:29px; }
+.poster-fallback.landscape { font-size:24px; }
+.card-poster { flex:0 0 148px; }
+.card-poster button,.card-landscape button { width:100%;text-align:inherit; }
+.card-poster .img-wrap { border-width:2px; }
+.card-poster .title { display:block;line-height:1.5; }
+.card-landscape { flex:0 0 195px; }
+.card-landscape button { width:100%;height:100%;position:relative; }
+.card-landscape .badge-title { white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.card-landscape .badge-title { z-index:1; }
+.section-title { margin-bottom:12px; }
+.section-heading { display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px; }
+.section-heading .section-title { margin:0; }
+.section-action { font-size:11px;color:#9cb1c9;padding:4px 2px; }
+.section-action:hover { color:#2ed573; }
+.vod-grid .card-poster { flex:none;width:100%;min-width:0; }
+.vod-grid .card-poster .img-wrap { height:auto;aspect-ratio: 2/3;max-height:260px; }
+.vod-grid .card-poster .title { max-width:100%; }
+.vod-category-list { min-height:0; }
+.vod-cat-item { text-align:left;background:none;border:0;width:100%; }
+.vod-cat-item .cat-counter { flex:none; }
+.vod-screen-container { min-height:0; }
+.vod-catalog-main { min-width:0; }
+.vod-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+.vod-catalog-header-bar h2 { white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.vod-stats { white-space:nowrap; }
+.live-stage { position:absolute;inset:0;background:radial-gradient(ellipse at 72% 45%,rgba(12,54,97,.8),rgba(4,10,18,.9) 65%),#03080f;background-size:cover;background-position:center; }
+.live-stage::after { content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.45),transparent 85%); }
+.channel-drawer { width:330px; }
+.drawer-tabs button { color:#8ca2b9;width:30px;height:30px; }
+.drawer-tabs button:hover { color:#2ed573; }
+.ch-row { border:0;border-left:3px solid transparent;background:none;width:100%;text-align:left; }
+.ch-row.active { border-left-color:#2ed573;background:rgba(0,119,255,.2); }
+.ch-row .ch-name { min-width:0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden; }
+.ch-row .ch-num { color:#7890aa;min-width:22px; }
+.ch-row .ch-badge { min-width:32px;text-align:center; }
+.live-program-banner { bottom:78px;left:350px;right:18px;max-width:min(580px,calc(100% - 390px)); }
+.live-program-banner .title { font-size:20px;line-height:1.3; }
+.live-program-banner .desc { font-size:12px;line-height:1.45;margin:6px 0 12px; }
+.live-pill { color:#2ed573;font-weight:900; }
+.live-categories-bar { overflow-x:auto;gap:6px; }
+.cat-chip { background:none;border:0;flex:none; }
+.cat-chip.active { color:#2ed573;background:#142233; }
+.empty-message { color:#90a4ae;font-size:13px;line-height:1.5;padding:15px 8px; }
+.donate-screen { gap:24px;justify-content:flex-start; }
+.donate-card { display:grid;grid-template-columns:minmax(0,1fr) 280px;align-items:center;gap:32px;width:100%;max-width:900px;margin:4vh auto;background:linear-gradient(125deg,#142133,#0f1721);padding:40px;border:1px solid rgba(255,255,255,.08);border-radius:12px; }
+.donate-tag { display:inline-flex;background:rgba(46,213,115,.12);color:#2ed573;padding:8px 11px;border:1px solid rgba(46,213,115,.25);border-radius:5px;font-size:11px;font-weight:900;letter-spacing:.09em;margin-bottom:18px; }
+.donate-card h1 { font-size:clamp(26px,3vw,42px);line-height:1.16;margin-bottom:18px; }
+.donate-card p { font-size:14px;line-height:1.65;color:#b1becb;margin-bottom:18px; }
+.paypal-address { padding:13px 16px;border-radius:8px;background:#0a111a;border:1px solid rgba(255,255,255,.1);overflow-wrap:anywhere;font-weight:700;font-size:15px; }
+.donation-primary { background:#0077ff;color:#fff; }
+.donation-primary:hover { background:#0965cb; }
+.donate-card .donate-hint { margin-top:16px;font-size:12px; }
+.donate-visual { min-height:250px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:radial-gradient(circle at center,#193d66,#0e1825 70%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px; }
+.donate-symbol { display:grid;place-items:center;width:74px;height:74px;border-radius:17px;background:#0077ff;color:white;font-size:50px;font-style:italic;font-weight:900; }
+.donate-visual strong { font-size:27px; }
+.donate-visual>span:last-child { color:#8fa0b5;font-size:12px; }
+.details-overlay { position:fixed;inset:0;background:rgba(4,8,14,.82);display:grid;place-items:center;z-index:1200;padding:22px;backdrop-filter:blur(8px); }
+.details-popover { width:min(850px,100%);max-height:calc(100vh - 44px);background:#111b29;border:1px solid rgba(255,255,255,.12);border-radius:12px;position:relative;overflow:auto;display:grid;grid-template-columns:40% 60%;box-shadow:0 30px 75px rgba(0,0,0,.55); }
+.details-close { position:absolute;top:10px;right:10px;width:35px;height:35px;border-radius:6px;background:rgba(255,255,255,.12);z-index:2; }
+.details-photo { min-height:360px;background:linear-gradient(135deg,#223a53,#0c1118) center/cover; }
+.details-information { padding:46px 30px;display:flex;flex-direction:column;gap:12px; }
+.details-information h2 { font-size:30px;line-height:1.12; }
+.details-information p { font-size:13px;line-height:1.75;color:#bdcbd8;max-height:260px;overflow:auto; }
+.details-information .details-actions-bar { flex-wrap:wrap; }
+.details-information .donate-tag { align-self:flex-start; }
+@media(max-width:1080px) { .sidebar{width:58px}.sidebar .side-item{padding:0;justify-content:center}.sidebar .side-item span,.sidebar-status{display:none}.sidebar .side-item.active{padding-left:0}.hero-split{height:250px}.vod-category-sidebar{width:175px}.header-search{width:180px} }
+@media(max-width:760px) { .top-controls{gap:4px}.top-btn{width:27px;height:27px}.header-search{width:145px}.hero-split{height:auto;grid-template-columns:1fr}.hero-box{height:205px}.content-area{padding:14px}.player-stats-corner{right:8px}.live-program-banner{left:58px;bottom:68px;max-width:calc(100% - 65px)}.channel-drawer{width:min(300px,55vw)}.vod-category-sidebar{display:none}.donate-card{grid-template-columns:1fr}.donate-visual{display:none}.details-popover{grid-template-columns:1fr}.details-photo{min-height:160px} }
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto !important;transition:none !important;animation:none !important}}
+
+/* ===== Pantallas de referencia exactas: fichas de películas y series (sin menú lateral) ===== */
+body.detail-active .app-sidebar {display:none}
+body.detail-active .screen-workspace {width:100%}
+.top-bar {padding-left:16px;padding-right:16px;height:48px}
+.top-controls {gap:17px}
+.top-btn {width:34px;height:32px}
+.top-btn svg {width:20px;height:20px;color:#8aaed9}
+.header-signal {display:flex;align-items:center;gap:3px;color:#2ed573}
+.header-signal svg {width:22px;height:22px;stroke-width:2.8}
+.time-display {font-size:14px;color:#fff;font-weight:700}
+.header-search {position:absolute;right:105px;top:48px;z-index:90;width:290px;display:none;background:#182537;box-shadow:0 12px 30px #0008}
+body.search-open .header-search {display:flex}
+.utility-back,.utility-full {display:none}
+#screen-detail {background:#10161f;overflow:auto}
+.ref-details {padding:24px 36px;min-height:100%;display:flex;flex-direction:column;justify-content:space-between;background:#10161f}
+.ref-details .back-nav-bar {margin-bottom:20px}
+.ref-details .btn-back {padding:9px 16px;border-radius:4px;background:#242c38;color:#f0f3fa;font-weight:750;font-size:13px}
+.ref-details .details-top-grid {gap:40px;align-items:flex-start;flex:1;margin-top:30px}
+.ref-details .details-col-info {max-width:calc(100% - 430px);gap:13px;min-width:0}
+.ref-details .title-rating-header {display:flex;gap:15px;align-items:baseline}
+.ref-details .title-rating-header h1 {font-size:clamp(27px,2.25vw,36px);font-weight:900;line-height:1.1;color:#fff}
+.ref-details .title-rating-header .score {color:#2ed573;font-size:24px;font-weight:800}
+.ref-details .sub-meta-line {color:#90a9c3;font-size:13px}
+.ref-details .meta-p {font-size:13px;line-height:1.5;color:#e3eaf1}
+.ref-details .meta-p strong {color:#98b3d2}
+.ref-details .tag-badge {border-radius:16px;padding:3px 11px;border:1px solid #64748a;margin-right:5px}
+.ref-details .code-badge-green {color:#2ed573;font-size:16px}
+.ref-details .ref-actions {display:flex;gap:13px;flex-wrap:wrap;margin-top:8px;margin-bottom:14px}
+.ref-details .btn-action-ui {display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#202c3c;color:#e2e9f2;border-radius:4px;padding:10px 16px;font-size:13px;font-weight:700;white-space:nowrap;height:43px}
+.ref-details .btn-action-ui svg {width:16px;height:16px}
+.ref-details .btn-action-ui .green {color:#2ed573}
+.ref-details .details-right-banner {width:320px;max-width:34%;height:215px;flex:none}
+.ref-details .details-media-box {width:100%;height:100%;display:grid;place-items:center;background:#151e29;border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer}
+.ref-details .vod-play-circle {width:60px;height:60px;border:2px solid white;display:grid;place-items:center;border-radius:50%;font-size:19px;color:#fff}
+.ref-details .platform-logo-text {font-size:55px;color:#e4e7e9;font-weight:900}
+.ref-details .episodes-bar-row {flex-wrap:wrap;margin-top:5px;gap:16px}
+.ref-details .dropdown-season {background:#202c3b;padding:11px 18px;min-width:150px;justify-content:space-between;cursor:pointer;position:relative;border-radius:4px;font-size:13px;font-weight:700}
+.ref-details .season-popover {z-index:1000;bottom:100%;left:0;min-width:180px;background:#172332;box-shadow:0 12px 28px #000a}
+.ref-details .episodes-cells-list {display:flex;gap:10px;overflow-x:auto;max-width:min(630px,100%);padding:2px 0}
+.ref-details .ep-num-cell {width:46px;height:44px;background:#202c3c;display:grid;place-items:center;border-radius:4px;flex-shrink:0;font-weight:700;font-size:14px}
+.ref-details .ep-num-cell.active {background:#2ed573;color:#0b1118}
+.ref-recommended {margin-top:45px;flex-shrink:0;margin-bottom:5px}
+.ref-recommended .section-title {font-size:15px;font-weight:700;color:#f5f8fa;margin-bottom:16px}
+.ref-recommended .bottom-slider-row {display:flex;gap:16px;overflow-x:auto;padding-top:10px;min-height:205px}
+.ref-recommended .bottom-card-rec {width:146px;flex:0 0 146px;cursor:pointer}
+.ref-recommended .poster-wrap {height:196px;border-radius:5px;overflow:hidden;background:#172232;position:relative}
+.ref-recommended .poster-wrap img {width:100%;height:100%;object-fit:cover}
+.ref-recommended .caption-rec {font-size:12px;line-height:1.4;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ref-recommended .badge-score-left {position:absolute;bottom:4px;left:4px;background:#0c121b;color:#2ed573;padding:2px 6px;border-radius:3px}
+.ref-recommended .badge-cc-right {position:absolute;bottom:4px;right:4px;background:#ff9b00;color:white;font-size:10px;padding:2px 5px;border-radius:2px}
+.ref-related-empty {font-size:12px;color:#8ca5bf;padding:10px 0}
+@media(max-width:980px){.ref-details .details-top-grid {gap:20px}.ref-details .details-col-info {max-width:calc(100% - 285px)}.ref-details .details-right-banner {width:260px;height:185px}}
+@media(max-width:730px){.ref-details{padding:18px}.ref-details .details-top-grid {flex-direction:column;margin-top:10px}.ref-details .details-col-info {max-width:100%}.ref-details .details-right-banner {max-width:100%;width:100%;height:180px}.ref-recommended{margin-top:30px}.header-signal{display:none}.top-controls{gap:6px}.top-btn{width:27px}}
+
+/* Pantalla de apoyo — coherente con los colores originales Xuper TV NF. */
+#screen-donation {background:#0b1118;overflow:auto;}
+.donate-new {background:#0b1118;min-height:100%;padding:24px 32px 28px;gap:12px;justify-content:flex-start;overflow:auto;}
+.donate-new .back-nav-bar {width:100%;margin:0 0 10px;}
+.donate-main {position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:36px;align-items:center;max-width:1220px;width:100%;margin:0 auto;min-height:550px;padding:42px 48px 38px;background:radial-gradient(ellipse at 80% 42%,#103052 0%,#0e1928 35%,#0d141e 75%);border:1px solid rgba(120,170,215,.16);border-radius:16px;overflow:hidden;box-shadow:0 24px 65px #0006;}
+.donate-glow {position:absolute;right:6%;top:-140px;width:420px;height:420px;background:radial-gradient(circle,#0080ff24,transparent 70%);pointer-events:none;}
+.donate-copy,.donate-side {position:relative;z-index:1;}
+.donate-heading-heart {display:grid;place-items:center;width:64px;height:64px;color:#2ed573;background:#1a3443;border-radius:18px;margin:0 0 18px;box-shadow:0 0 30px #2ed57316;}
+.donate-heading-heart svg {width:31px;height:31px;stroke-width:2.1;}
+.donate-main .donate-tag {margin:0 0 12px;background:#16403566;}
+.donate-main h1 {font-size:clamp(32px,3.5vw,52px);line-height:1.08;letter-spacing:-.04em;color:#fff;font-weight:900;margin:0 0 18px;}
+.donate-main h1 span {color:#d8e9fd;}
+.donate-main .donate-lead {font-size:15px;color:#b5c8d9;line-height:1.7;max-width:650px;margin:0 0 28px;}
+.donate-payment-actions {display:flex;flex-direction:column;align-items:flex-start;gap:14px;max-width:540px;}
+.donate-paypal-button {background:#005ee5;color:#fff;min-height:48px;width:min(385px,100%);padding:11px 20px;border-radius:9px;font-size:16px;font-weight:800;border:1px solid #2684ff;display:flex;gap:14px;align-items:center;justify-content:center;transition:background .15s,transform .15s;}
+.donate-paypal-button:hover {background:#0a78ff;transform:translateY(-1px);}
+.paypal-letter {display:inline-block;color:white;font:bold italic 24px Arial,sans-serif;transform:skew(-9deg);}
+.open-external{font-size:19px;margin-left:auto;}
+.donate-or {font-size:12px;color:#97abc0;}
+.donate-address-row {display:flex;align-items:center;max-width:100%;width:100%;border:1px solid #37506b;background:#0b1420;border-radius:10px;min-height:50px;padding:4px 5px 4px 14px;gap:8px;}
+.donate-address-row .paypal-address {background:none;border:0;flex:1;min-width:0;color:#edf6ff;font-size:13px;font-weight:750;padding:0;word-break:break-all;}
+.donate-copy-button {padding:10px 15px;border-radius:7px;background:#1d354b;border:1px solid #38556f;color:#fff;font-weight:800;white-space:nowrap;}
+.donate-copy-button:hover {background:#25577d;}
+.donate-feedback {font-size:11.5px;color:#92a9bd;line-height:1.5;min-height:36px;}
+.donate-gratitude {display:block;margin-top:22px;color:#d4e2ef;font-size:13px;}
+.donate-side {display:flex;flex-direction:column;align-items:center;gap:30px;}
+.donate-side-emblem {position:relative;display:flex;align-items:center;justify-content:center;width:198px;height:198px;border-radius:40px;background:linear-gradient(145deg,#101923,#152c43);border:2px solid #41546a;box-shadow:0 20px 42px #0008,inset 0 0 45px #0077ff1e;}
+.donate-x {font-size:134px;line-height:1;color:#0077ff;font-weight:1000;font-style:italic;transform:skew(-7deg);text-shadow:6px 6px 0 #bfdcff26;}
+.donate-play {position:absolute;color:#fff;font-size:31px;right:23px;top:72px;text-shadow:0 2px 5px #000;}
+.donate-nf {position:absolute;bottom:12px;right:18px;background:#e50914;border-radius:3px;padding:5px 8px;font-size:12px;font-weight:900;}
+.donate-side-list {align-self:stretch;max-width:345px;background:#0d1925bf;border:1px solid #294155;border-radius:10px;padding:20px;}
+.donate-side-list strong {display:block;margin-bottom:14px;font-size:14px;}
+.donate-side-list p {display:flex;gap:12px;align-items:flex-start;color:#c5d5e3;font-size:13px;margin:10px 0;line-height:1.5;}
+.donate-side-list p span {color:#2ed573;font-weight:900;}
+.donate-disclaimer {max-width:1220px;width:100%;margin:6px auto;color:#8098af;font-size:11px;text-align:center;}
+@media(max-width:850px){.donate-main{grid-template-columns:1fr;padding:28px;gap:22px}.donate-side{display:none}.donate-new{padding:20px}.donate-main{min-height:0}}
+@media(max-width:490px){.donate-main{padding:20px}.donate-address-row{flex-wrap:wrap}.donate-copy-button{margin-left:auto}}
+
+
+/* Resultados reales del catálogo; se mantiene el estilo NF de las capturas. */
+#screen-search {background:#10161f;overflow-y:auto;}
+.search-screen-container {padding:27px 35px 45px;min-height:100%;}
+.search-head {display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:26px;}
+.search-head-title {display:flex;align-items:flex-start;gap:17px;min-width:0;}
+.search-back {height:34px;min-width:34px;line-height:30px;border:1px solid #334155;border-radius:7px;color:#fff;background:#263241;font-size:28px;cursor:pointer;}
+.search-back:hover,.search-again:hover {background:#334458;}
+.search-eyebrow {font-size:11px;font-weight:800;letter-spacing:1.5px;color:#27d879;}
+.search-head h1 {font-size:clamp(23px,2.6vw,36px);font-weight:850;line-height:1.14;margin:5px 0 8px;overflow-wrap:anywhere;color:#fff;}
+.search-head p {font-size:13px;color:#95a9bf;line-height:1.5;max-width:640px;margin:0;}
+.search-again {display:flex;align-items:center;gap:8px;flex:none;border:1px solid #35465a;border-radius:7px;padding:10px 15px;background:#202d3d;color:#f0f6ff;font-size:13px;font-weight:700;cursor:pointer;}
+.search-again svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;}
+.search-filter-row {display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #2b3849;padding-bottom:17px;margin-bottom:23px;flex-wrap:wrap;}
+.search-filters {display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+.search-filter {border-radius:6px;border:1px solid #3c4958;background:#202c3b;color:#afc0d1;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;}
+.search-filter.active {border-color:#2ccc78;color:#0b2017;background:#2ed573;}
+.search-filter:not(.active):hover {color:#fff;border-color:#697d92;}
+.search-summary {color:#8da4ba;font-size:12px;white-space:nowrap;}
+.search-results-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:21px 18px;align-items:start;}
+.search-results-grid .card-poster {min-width:0;max-width:none;}
+.search-empty,.search-loading {grid-column:1/-1;min-height:200px;display:grid;place-items:center;padding:36px 20px;border:1px dashed #34475c;border-radius:10px;color:#aec0d3;text-align:center;font-size:14px;}
+.search-loading {position:relative;padding-top:80px;}
+.search-loading:before {content:'';display:block;position:absolute;top:26px;left:calc(50% - 16px);width:30px;height:30px;border:3px solid #3f5268;border-top-color:#2ed573;border-radius:50%;animation:search-turn 1s linear infinite;}
+@keyframes search-turn {to{transform:rotate(360deg)}}
+@media(max-width:760px) {.search-screen-container{padding:19px 16px}.search-head{flex-wrap:wrap}.search-results-grid{grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:13px}.search-again{margin-left:50px}}
+#screen-search .search-screen-container {width:100%;flex:1;min-width:0;box-sizing:border-box;}
+
+/* Carga progresiva: solo animacion, sin modificar el diseno NF */
+.smart-artwork { opacity:0; transition:opacity .18s ease-out; }
+.smart-artwork.image-ready { opacity:1; }
+.load-more-posters { display:block; grid-column:1/-1; align-self:center; justify-self:center; margin:14px auto 22px; padding:9px 22px; background:#1d2939; color:#d9e4f0; border:1px solid #334256; border-radius:5px; font-size:13px; cursor:pointer; }
+.load-more-posters:hover,.load-more-posters:focus-visible { border-color:#2ed573; color:white; }
+</style>
+</head>
+<body data-ui-version="nf-exact-screens-2026-11-07">
+<svg aria-hidden="true" class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="ic-tv" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="15" rx="3"/><path d="M8 22h8M8 10h8"/></symbol>
+  <symbol id="ic-film" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 3v18m10-18v18M3 9h4m-4 6h4m10-6h4m-4 6h4"/></symbol>
+  <symbol id="ic-series" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="14" rx="2"/><path d="m7 3 5 4 5-4"/></symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 1-5 4.8 1.2 7-6.2-3.3-6.2 3.3 1.2-7-5-4.8 7-1z"/></symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></symbol>
+  <symbol id="ic-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
+  <symbol id="ic-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+  <symbol id="ic-back" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7M7 12h14"/></symbol>
+  <symbol id="ic-donate" viewBox="0 0 24 24"><path d="M12 21 4 13a5 5 0 0 1 7-7l1 1 1-1a5 5 0 0 1 7 7z"/></symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></symbol>
+  <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></symbol>
+  <symbol id="ic-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5zm-9 9 9 5 9-5M3 17l9 5 9-5"/></symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3"/></symbol>
+  <symbol id="ic-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8L4 5z"/></symbol>
+  <symbol id="ic-user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3c0-3 3-5 8-5s8 2 8 5v3"/></symbol>
+  <symbol id="ic-bell" viewBox="0 0 24 24"><path d="M5 17c2-2 1-5 2-8a5 5 0 0 1 10 0c1 3 0 6 2 8H5zm5 3h4"/></symbol>
+  <symbol id="ic-wifi" viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6 13a9 9 0 0 1 12 0m-9 4a5 5 0 0 1 6 0"/><circle cx="12" cy="20" r=".7"/></symbol>
+  <symbol id="ic-signal" viewBox="0 0 24 24"><path d="M4 20v-3m4 3v-6m4 6V9m4 11V6m4 14V3"/></symbol>
+  <symbol id="ic-keyboard" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 8h2m3 0h2m3 0h2M5 12h2m3 0h2m3 0h2M7 16h10"/></symbol>
+  <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M20 5v6h-6M4 19v-6h6M6 10a7 7 0 0 1 12-2l2 3M4 13l2 3a7 7 0 0 0 12-2"/></symbol>
+</svg>
+<header class="top-bar" role="banner">
+  <button type="button" class="brand" data-nav="Inicio" title="Volver a Inicio" aria-label="Xuper TV — Inicio"><span class="logo-x">X</span>UPER<span class="logo-tv">TV</span><span class="badge-nf">NF</span></button>
+  <nav class="top-controls" aria-label="Navegación superior">
+    <button type="button" class="top-btn active" data-nav="Inicio" aria-label="Inicio" title="Inicio"><svg><use href="#ic-home"/></svg></button>
+    <button type="button" class="top-btn" data-nav="TV en vivo" aria-label="TV en vivo" title="Televisión"><svg><use href="#ic-tv"/></svg></button>
+    <button type="button" class="top-btn" data-nav="Películas" aria-label="Películas" title="Películas"><svg><use href="#ic-film"/></svg></button>
+    <button type="button" class="top-btn" data-nav="Series" aria-label="Series" title="Series"><svg><use href="#ic-layers"/></svg></button>
+    <button type="button" class="top-btn" id="recent-btn" aria-label="Continuar viendo" title="Continuar viendo"><svg><use href="#ic-clock"/></svg></button>
+    <button type="button" class="top-btn" id="search-toggle" aria-label="Buscar" title="Buscar"><svg><use href="#ic-search"/></svg></button>
+    <button type="button" class="top-btn" id="filter-btn" aria-label="Filtrar" title="Filtrar"><svg><use href="#ic-filter"/></svg></button>
+    <button type="button" class="top-btn" id="user-btn" aria-label="Cuenta" title="Información de la aplicación"><svg><use href="#ic-user"/></svg></button>
+    <button type="button" class="top-btn" id="notice-btn" aria-label="Avisos" title="Estado de la aplicación"><svg><use href="#ic-bell"/></svg></button>
+    <span class="header-signal" title="Estado de la aplicación"><svg><use href="#ic-signal"/></svg><svg><use href="#ic-wifi"/></svg></span>
+    <span class="time-display" id="clock">--:--</span>
+    <form class="header-search" id="search-form" role="search"><svg><use href="#ic-search"/></svg><input type="search" id="search-input" placeholder="Buscar películas, series o canales" aria-label="Buscar contenido" maxlength="100"><button type="submit" title="Buscar" aria-label="Buscar">↵</button></form>
+    <button type="button" class="top-btn utility-back" id="back-btn" aria-label="Volver" title="Volver"><svg><use href="#ic-back"/></svg></button>
+    <button type="button" class="top-btn utility-full" id="fullscreen-btn" aria-label="Pantalla completa" title="Pantalla completa (F11)"><svg><use href="#ic-expand"/></svg></button>
+  </nav>
+</header>
+<div class="app-body">
+  <nav class="sidebar app-sidebar" aria-label="Secciones principales">
+    <button type="button" class="side-item active" data-nav="Inicio"><svg><use href="#ic-home"/></svg><span>DESTACADOS</span></button>
+    <button type="button" class="side-item" data-nav="TV en vivo"><svg><use href="#ic-tv"/></svg><span>TV</span></button>
+    <button type="button" class="side-item" data-nav="Películas"><svg><use href="#ic-film"/></svg><span>PELÍCULA</span></button>
+    <button type="button" class="side-item" data-nav="Series"><svg><use href="#ic-series"/></svg><span>SERIES</span></button>
+    <button type="button" class="side-item" data-nav="Favoritos"><svg><use href="#ic-star"/></svg><span>FAVORITOS</span></button>
+    <div class="sidebar-spacer"></div>
+    <button type="button" class="side-item" data-nav="Apoyar"><svg><use href="#ic-donate"/></svg><span>DONACIÓN</span></button>
+    <div class="sidebar-status" id="sidebar-status">Conectando al catálogo...</div>
+  </nav>
+  <div class="screen-workspace">
+    <main id="screen-home" class="app-screen active" role="main" aria-label="Inicio"><div class="content-area" id="home-content"></div></main>
+    <main id="screen-vod" class="app-screen" role="main" aria-label="Películas"><div class="vod-screen-container"><aside class="vod-category-sidebar"><div class="vod-category-header">Categorías</div><div class="vod-category-list" id="movie-cats"></div></aside><div class="vod-catalog-main"><div class="vod-catalog-header-bar"><h2 id="movie-title">Películas</h2><div class="vod-stats" id="movie-count"></div></div><div class="vod-grid" id="movie-grid"></div></div></div></main>
+    <main id="screen-series" class="app-screen" role="main" aria-label="Series"><div class="vod-screen-container"><aside class="vod-category-sidebar"><div class="vod-category-header">Series TV</div><div class="vod-category-list" id="series-cats"></div></aside><div class="vod-catalog-main"><div class="vod-catalog-header-bar"><h2 id="series-title">Series</h2><div class="vod-stats" id="series-count"></div></div><div class="vod-grid" id="series-grid"></div></div></div></main>
+    <main id="screen-tv" class="app-screen" role="main" aria-label="TV en vivo"><div class="live-player-container"><div class="live-stage" id="live-backdrop"></div><div class="player-stats-corner"><span id="tv-clock">--:--</span><span class="live-pill">EN VIVO</span></div><aside class="channel-drawer"><div class="drawer-tabs"><button title="Buscar canales" id="tv-search"><svg><use href="#ic-search"/></svg></button><button title="Favoritos" data-nav="Favoritos"><svg><use href="#ic-star"/></svg></button><button title="Inicio" data-nav="Inicio"><svg><use href="#ic-home"/></svg></button></div><div class="drawer-list-wrap"><div class="country-header" id="tv-title">Televisión</div><div class="channel-rows-box" id="tv-list"></div><div class="drawer-footer-hint">Selecciona un canal para reproducirlo desde el reproductor de Xuper TV.</div></div></aside><div class="live-program-banner" id="live-preview"><div class="tag">CONTENIDO DISPONIBLE</div><div class="title" id="live-title">Televisión en vivo</div><div class="desc" id="live-desc">Selecciona un canal para comenzar a ver.</div><button type="button" class="btn-action-ui" id="play-selected-live">▶ Reproducir</button></div><div class="live-categories-bar" id="live-categories"></div></div></main>
+    <main id="screen-favorites" class="app-screen" role="main" aria-label="Favoritos"><div class="vod-screen-container"><div class="vod-catalog-main"><div class="vod-catalog-header-bar"><h2 id="favorites-title">Favoritos</h2><div class="vod-stats" id="favorites-count"></div></div><div class="vod-grid" id="favorites-grid"></div></div></div></main>
+
+    <main id="screen-search" class="app-screen" role="main" aria-label="Resultados de búsqueda">
+      <div class="search-screen-container">
+        <div class="search-head">
+          <div class="search-head-title">
+            <button type="button" class="search-back" id="search-back" aria-label="Volver a la sección anterior">‹</button>
+            <div><span class="search-eyebrow">EXPLORAR CATÁLOGO</span>
+              <h1 id="search-query-title">Resultados de búsqueda</h1>
+              <p id="search-message" role="status" aria-live="polite">Busca películas, series y canales.</p></div>
+          </div>
+          <button type="button" class="search-again" id="search-again"><svg><use href="#ic-search"/></svg> Nueva búsqueda</button>
+        </div>
+        <div class="search-filter-row"><div id="search-filters" class="search-filters"></div><span class="search-summary" id="search-summary"></span></div>
+        <div class="search-results-grid" id="search-results-grid"></div>
+      </div>
+    </main>
+    <main id="screen-detail" class="app-screen" role="main" aria-label="Ficha del contenido">
+      <div class="details-view-screen ref-details">
+        <div class="back-nav-bar"><button type="button" class="btn-back" id="detail-back">◀ &nbsp;<span id="detail-back-text">Volver al Catálogo de Películas</span></button></div>
+        <div class="details-top-grid">
+          <div class="details-col-info">
+            <div class="title-rating-header"><h1 id="detail-title">Selecciona un título</h1><span class="score" id="detail-score" hidden></span></div>
+            <div class="sub-meta-line" id="detail-meta"></div>
+            <div class="code-badge-green" id="detail-episode-code" hidden>T1 - E1</div>
+            <div class="meta-p" id="detail-genre-row" hidden><strong>Género : </strong><span id="detail-genres"></span></div>
+            <div class="meta-p" id="detail-director-row" hidden><strong>Director : </strong><span id="detail-director"></span></div>
+            <div class="meta-p" id="detail-actors-row" hidden><strong>Actors : </strong><span id="detail-actors"></span></div>
+            <div class="meta-p"><strong>Sinopsis : </strong><span id="detail-synopsis"></span></div>
+            <div class="details-actions-bar ref-actions">
+              <button type="button" class="btn-action-ui" id="detail-play"><span class="green">▶</span> Reproducir</button>
+              <button type="button" class="btn-action-ui" id="detail-fullscreen"><svg><use href="#ic-expand"/></svg> Pantalla c..</button>
+              <button type="button" class="btn-action-ui" id="detail-language"><svg><use href="#ic-keyboard"/></svg> Idioma</button>
+              <button type="button" class="btn-action-ui" id="detail-resolution"><svg><use href="#ic-refresh"/></svg> Resolución</button>
+              <button type="button" class="btn-action-ui" id="detail-fav"><svg><use href="#ic-star"/></svg> Favorito</button>
+            </div>
+            <div class="episodes-bar-row" id="detail-seasons" hidden>
+              <div class="dropdown-season" id="detail-season-button" role="button" tabindex="0"><span id="season-selected-text">Temporada 1</span> ▲<div class="season-popover" id="season-popover"></div></div>
+              <span class="code-badge-green" id="detail-episode-range"></span>
+              <div class="episodes-cells-list" id="detail-episode-list"></div>
+            </div>
+          </div>
+          <div class="details-right-banner"><button type="button" class="details-media-box" id="detail-preview"><span class="platform-logo-text" id="detail-platform" hidden></span><span class="vod-play-circle" id="detail-preview-icon">▶</span></button></div>
+        </div>
+        <div class="ref-recommended"><h2 class="section-title" id="detail-related-title">Quizás te guste</h2><div class="bottom-slider-row" id="detail-related"></div></div>
+      </div>
+    </main>
+    <main id="screen-donation" class="app-screen" role="main" aria-label="Donaciones">
+      <div class="details-view-screen donate-screen donate-new">
+        <div class="back-nav-bar"><button class="btn-back" type="button" id="donate-back"><svg><use href="#ic-back"/></svg> Volver a Xuper TV</button></div>
+        <section class="donate-main" aria-labelledby="donate-heading">
+          <div class="donate-glow" aria-hidden="true"></div>
+          <div class="donate-copy">
+            <div class="donate-heading-heart" aria-hidden="true"><svg><use href="#ic-donate"/></svg></div>
+            <span class="donate-tag">APOYA EL DESARROLLO</span>
+            <h1 id="donate-heading">Apoya el proyecto<br><span>Xuper TV NF</span></h1>
+            <p class="donate-lead">Tu apoyo ayuda a mantener y mejorar la aplicación: una mejor experiencia de reproducción, correcciones y nuevas funciones.</p>
+            <div class="donate-payment-actions">
+              <button type="button" class="donate-paypal-button" id="open-paypal" aria-label="Donar con PayPal en el navegador"><span class="paypal-letter">P</span> Donar con PayPal <span class="open-external" aria-hidden="true">↗</span></button>
+              <p class="donate-or">Se abrirá tu navegador directamente en PayPal.Me para elegir el importe.</p>
+              <p class="donate-feedback" role="status" aria-live="polite">Donación voluntaria. Antes de enviar dinero, verifica en PayPal los datos del destinatario.</p>
+            </div>
+            <span class="donate-gratitude">♡ Gracias por acompañar el proyecto.</span>
+          </div>
+          <div class="donate-side">
+            <div class="donate-side-emblem" aria-hidden="true"><span class="donate-x">X</span><span class="donate-play">▶</span><span class="donate-nf">NF</span></div>
+            <div class="donate-side-list"><strong>Tu apoyo nos impulsa a:</strong><p><span>✓</span> Dar mantenimiento a la aplicación</p><p><span>✓</span> Añadir nuevas funciones</p><p><span>✓</span> Mejorar estabilidad y rendimiento</p><p><span>✓</span> Seguir corrigiendo problemas</p></div>
+          </div>
+        </section>
+        <p class="donate-disclaimer">Esta pantalla no procesa pagos ni solicita contraseñas o tarjetas. El botón abre el sitio oficial de PayPal en tu navegador.</p>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="details-overlay" id="details-overlay" hidden><div class="details-popover" role="dialog" aria-modal="true" aria-labelledby="details-title"><button class="details-close" id="details-close" aria-label="Cerrar"><svg><use href="#ic-close"/></svg></button><div id="details-art" class="details-photo"></div><div class="details-information"><span class="donate-tag" id="details-type">PELÍCULA</span><h2 id="details-title"></h2><p id="details-description"></p><div class="details-actions-bar"><button type="button" class="btn-action-ui donation-primary" id="details-play">▶ Ver contenido</button><button type="button" class="btn-action-ui" id="details-favorite" hidden>☆ Favorito</button></div></div></div></div>
+<script>
+/* Puente para Vega OS: debe cargarse ANTES de app.js.
+ * No crea resultados ficticios ni lee credenciales de otras instalaciones.
+ */
+(function () {
+  'use strict';
+  function send(action, value) {
+    try {
+      if (!window.ReactNativeWebView || !window.ReactNativeWebView.postMessage) return false;
+      window.ReactNativeWebView.postMessage(JSON.stringify({action: action, value: value == null ? '' : String(value)}));
+      return true;
+    } catch (e) { console.warn('Vega bridge', action, e); return false; }
+  }
+  var actions = ['xuperReady', 'xuperNavigate', 'xuperPlay', 'xuperSearch',
+    'xuperSelectItem', 'xuperBack', 'xuperFavorite', 'xuperQuit',
+    'xuperFullscreen', 'xuperOpenPaypal'];
+  actions.forEach(function (action) {
+    window[action] = function (value) {
+      if (action === 'xuperReady') {
+        var fav = [];
+        try { fav = JSON.parse(localStorage.getItem('xuper-vega-favorites') || '[]'); } catch (e) {}
+        var saved = JSON.stringify(Array.isArray(fav) ? fav : []);
+        if (!send(action, saved)) setTimeout(function () { send(action, saved); }, 500);
+        return true;
+      }
+      return send(action, value);
+    };
+  });
+  window.xuperVegaRememberFavorites = function (ids) {
+    try { localStorage.setItem('xuper-vega-favorites', JSON.stringify(ids)); } catch (e) {}
+  };
+  // El mando de Fire TV navega elementos enfocables mediante la navegación espacial nativa.
+  // Cuando se pierde foco, elegimos el primer elemento disponible.
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape' && (event.key === 'Backspace' || event.key === 'BrowserBack' || event.keyCode === 27)) {
+      if (event.key === 'Backspace' && document.activeElement &&
+          ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      event.preventDefault();
+      document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+    }
+  });
+})();
+
+</script>
+<script>/* XUPER TV NF · adaptación del diseño proporcionado por el usuario a WebView2.
+   El catálogo siempre proviene del motor C++, nunca de películas ficticias. */
+(() => {
+  'use strict';
+  const $=(sel,scope=document)=>scope.querySelector(sel);
+  const $$=(sel,scope=document)=>Array.from(scope.querySelectorAll(sel));
+  const routeAliases={inicio:'Inicio',destacados:'Inicio',home:'Inicio',tv:'TV en vivo','tv en vivo':'TV en vivo',pelicula:'Películas',peliculas:'Películas',vod:'Películas',series:'Series',favoritos:'Favoritos',apoyar:'Apoyar'};
+  const state={page:'Inicio',nativePage:'Inicio',title:'Inicio',items:[],root:[],selected:0,signature:'',status:'Conectando...',preview:null,liveFilter:'all',donateFrom:'Inicio',demo:false,metadata:{},detailMode:false,lastAsset:null,pendingAsset:null,detailAsset:null,detailOrigin:'Películas',discovered:[],episodeIndex:0,detailSeasons:[],selectedSeason:1,searchActive:false,searchPending:false,searchFailed:false,searchQuery:'',searchFilter:'all',searchMessage:''};
+  const PAYPAL_URL='https://paypal.me/dona326';
+
+  function norm(x){return String(x||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+  function route(x){return routeAliases[norm(x)]||String(x||'Inicio');}
+  function invoke(name,value){
+    if(typeof window[name]!=='function')return false;
+    try{if(value===undefined)window[name]();else window[name](String(value));return true;}
+    catch(e){console.warn('Puente Windows',name,e);return false;}
+  }
+  function openSearchBox(){
+    document.body.classList.add('search-open');
+    const input=$('#search-input');
+    if(input){input.focus();input.select();}
+  }
+  function startSearch(text){
+    const q=String(text||'').trim().slice(0,100);
+    if(!q)return;
+    if(!invoke('xuperSearch',q)){
+      setStatus('La búsqueda requiere la aplicación de Windows conectada al catálogo.');
+      return;
+    }
+    state.searchActive=true;state.searchPending=true;state.searchFailed=false;
+    state.searchQuery=q;state.searchFilter='all';state.searchMessage='';
+    state.detailMode=false;state.pendingAsset=null;state.detailAsset=null;
+    document.body.classList.remove('search-open');closeDetails();
+    switchScreen(state.page);renderSearch();
+  }
+  function leaveSearch(){
+    if(state.searchPending){
+      $('#search-message').textContent='La búsqueda sigue en curso. Espera a que termine.';
+      return;
+    }
+    if(state.searchFailed){
+      state.searchActive=false;state.searchFailed=false;
+      switchScreen(state.page);render();return;
+    }
+    invoke('xuperBack');
+  }
+  function searchType(item){
+    if(item.kind==='channel')return 'tv';
+    if(item.kind==='asset')return String(item.program_type)==='0'?'series':'movies';
+    return 'other';
+  }
+  function renderSearch(){
+    if(!state.searchActive)return;
+    $('#search-query-title').textContent=state.searchQuery?'Resultados de «'+state.searchQuery+'»':'Resultados de búsqueda';
+    const pane=$('#search-results-grid');const oldGridObserver=gridObservers.get(pane);if(oldGridObserver){oldGridObserver.disconnect();gridObservers.delete(pane);}pane.replaceChildren();
+    const subtitle=$('#search-message');
+    const filterBar=$('#search-filters');filterBar.replaceChildren();
+    if(state.searchPending){
+      $('#search-summary').textContent='Buscando...';
+      subtitle.textContent='Consultando películas, series y canales. Algunas categorías pueden tardar en responder.';
+      pane.append(el('div','search-loading','Buscando contenido en tu catálogo…'));
+      return;
+    }
+    if(state.searchFailed){
+      $('#search-summary').textContent='Búsqueda no completada';
+      subtitle.textContent=state.searchMessage||'No se pudo consultar el servicio. Comprueba tu conexión e inténtalo otra vez.';
+      pane.append(el('div','search-empty','No se obtuvieron resultados. Puedes intentar otra búsqueda.'));
+      return;
+    }
+    const data=state.items.filter(i=>i.kind==='channel'||i.kind==='asset'||i.kind==='search-page');
+    const counts={all:data.length,movies:0,series:0,tv:0};
+    for(const i of data){const t=searchType(i);if(t in counts)counts[t]++;}
+    const labels=[['all','Todos'],['movies','Películas'],['series','Series'],['tv','Canales']];
+    labels.forEach(([key,label])=>{
+      const count=counts[key];
+      const b=btn(label+'  '+count,'search-filter'+(state.searchFilter===key?' active':''),()=>{
+        state.searchFilter=key;renderSearch();
+      });
+      b.setAttribute('aria-pressed',String(state.searchFilter===key));filterBar.append(b);
+    });
+    const resultCount=counts.movies+counts.series+counts.tv;
+    $('#search-summary').textContent=resultCount+' resultado'+(resultCount===1?'':'s');
+    subtitle.textContent=resultCount?'Selecciona un título o canal para abrirlo.':'No se encontraron coincidencias. Prueba con parte del nombre.';
+    const visible=data.filter(i=>state.searchFilter==='all'||searchType(i)===state.searchFilter);
+    if(!visible.length){pane.append(el('div','search-empty','No hay coincidencias en esta categoría.'));return;}
+    appendGridInBatches(pane,visible,poster,30);
+  }
+  function isCategory(i){return ['category','vod-category','section','live-section','favorites','resume','donation','vod-page','search-page'].includes(i?.kind);}
+  function isPlayable(i){return ['channel','episode','media'].includes(i?.kind);}
+  function isChannel(i){return i?.kind==='channel';}
+  function typeLabel(i){
+    if(!i)return 'DESTACADOS';
+    if(i.kind==='channel')return 'TV EN VIVO';
+    if(i.kind==='episode')return 'EPISODIO';
+    if(i.kind==='asset')return String(i.program_type)==='0'?'SERIE':'PELÍCULA';
+    if(i.kind==='section'||i.kind==='category'||i.kind==='vod-category'||i.kind==='live-section')return 'COLECCIÓN';
+    if(i.kind==='favorites')return 'FAVORITOS';
+    if(i.kind==='resume')return 'CONTINUAR VIENDO';
+    return 'CONTENIDO';
+  }
+  function description(i, fallback='Explora el contenido disponible en tu catálogo.'){
+    return String(i?.description||'').replace(/\s+/g,' ').trim() || fallback;
+  }
+  function short(t,max=150){let s=String(t||'').replace(/\s+/g,' ').trim();return s.length>max?s.slice(0,max-1).trimEnd()+'…':s;}
+  function art(i){const candidates=[i?.artwork_cache,i?.artwork];return candidates.find(x=>typeof x==='string' && /^(https?:\/\/|data:image\/(?:png|jpe?g|webp|gif);base64,|file:\/\/)/i.test(x.trim()))||'';}
+  function initials(i){const parts=String(i?.title||'TV').trim().split(/\s+/).filter(Boolean);return (parts.length>1?(parts[0][0]+parts[1][0]):parts[0]?.slice(0,2)||'TV').toUpperCase();}
+  function el(tag,klass='',text){const e=document.createElement(tag);if(klass)e.className=klass;if(text!==undefined)e.textContent=String(text);return e;}
+  // OPTIMIZACION DE IMAGENES (WebView2):
+  // - Descarga SOLO las portadas proximas al viewport, no 300 a la vez.
+  // - Maximo cuatro solicitudes distintas simultaneas.
+  // - Reutiliza la imagen ya descargada al regresar a una seccion.
+  // - El cache HTTP persistente del perfil WebView2 complementa esta memoria
+  //   cuando el servidor de imagenes permite almacenamiento en disco.
+  const imageCache=new Map();
+  const imageQueue=[];
+  const failedImages=new Map();
+  const MAX_CONCURRENT_IMAGES=4;
+  const MAX_MEMORY_IMAGES=56;
+  let activeImageJobs=0;
+  const imageObserver=typeof IntersectionObserver==='function'
+    ?new IntersectionObserver(entries=>{
+        for(const entry of entries)if(entry.isIntersecting){
+          imageObserver.unobserve(entry.target);
+          activateImage(entry.target);
+        }
+      },{rootMargin:'450px 180px',threshold:0.01}):null;
+  const gridObservers=new WeakMap();
+
+  function pumpImageQueue(){
+    while(activeImageJobs<MAX_CONCURRENT_IMAGES&&imageQueue.length){
+      const task=imageQueue.shift();
+      activeImageJobs++;
+      const loader=new Image();
+      loader.decoding='async';
+      loader.referrerPolicy='no-referrer';
+      let done=false;
+      const finish=(ok)=>{
+        if(done)return;
+        done=true;
+        clearTimeout(timeout);
+        loader.onload=null;loader.onerror=null;
+        activeImageJobs--;
+        if(ok){task.resolve(loader);}
+        else{
+          imageCache.delete(task.src);
+          failedImages.set(task.src,Date.now()+60000);
+          task.reject(new Error('No se pudo cargar la portada.'));
+        }
+        pumpImageQueue();
+      };
+      const timeout=setTimeout(()=>{loader.src='';finish(false);},15000);
+      loader.onload=()=>finish(true);
+      loader.onerror=()=>finish(false);
+      loader.src=task.src;
+    }
+  }
+  function loadArtwork(src,urgent=false){
+    const retryAfter=failedImages.get(src)||0;
+    if(retryAfter>Date.now())return Promise.reject(new Error('Imagen temporalmente inaccesible'));
+    if(retryAfter)failedImages.delete(src);
+    if(imageCache.has(src)){
+      const promise=imageCache.get(src);
+      imageCache.delete(src);imageCache.set(src,promise);
+      return promise;
+    }
+    let resolveTask,rejectTask;
+    const promise=new Promise((resolve,reject)=>{resolveTask=resolve;rejectTask=reject;});
+    imageCache.set(src,promise);
+    // Las promesas finalizadas conservan la imagen decodificada un tiempo;
+    // no se guardan cientos de portadas en RAM.
+    while(imageCache.size>MAX_MEMORY_IMAGES){
+      const oldest=imageCache.keys().next().value;
+      imageCache.delete(oldest);
+    }
+    const task={src,resolve:resolveTask,reject:rejectTask};
+    if(urgent)imageQueue.unshift(task);else imageQueue.push(task);
+    pumpImageQueue();
+    return promise;
+  }
+  function failedImageFallback(im){
+    const parent=im.parentElement;
+    im.remove();
+    if(!parent||parent.querySelector('.poster-fallback,.hero-no-image'))return;
+    const title=im.dataset.title||'TV';
+    const mock={title};
+    if(parent.classList.contains('hero-box'))parent.prepend(el('div','hero-no-image',initials(mock)));
+    else parent.prepend(fallbackFor(mock,parent.classList.contains('card-landscape')));
+  }
+  function activateImage(im){
+    const src=im.dataset.remoteSrc;
+    if(!src||im.dataset.activated)return;
+    im.dataset.activated='1';
+    loadArtwork(src,im.dataset.urgent==='1').then(loader=>{
+      if(!im.isConnected)return;
+      // La primera tarjeta reutiliza el mismo <img> descargado: cero
+      // segundas solicitudes. Solo se clona cuando hay dos tarjetas con URL igual.
+      const ready=loader.isConnected?loader.cloneNode(false):loader;
+      ready.className=im.className+' image-ready';
+      ready.alt=im.alt;ready.loading=im.loading;
+      ready.decoding='async';ready.referrerPolicy='no-referrer';
+      ready.onerror=()=>failedImageFallback(ready);
+      im.replaceWith(ready);
+    }).catch(()=>{if(im.isConnected)failedImageFallback(im);});
+  }
+  function img(i,urgent=false){
+    const src=art(i);if(!src)return null;
+    const im=el('img','smart-artwork');
+    im.alt='';im.loading=urgent?'eager':'lazy';im.decoding='async';
+    im.referrerPolicy='no-referrer';
+    im.dataset.remoteSrc=src;im.dataset.title=String(i?.title||'TV');
+    if(urgent){im.dataset.urgent='1';queueMicrotask(()=>activateImage(im));}
+    else if(imageObserver)imageObserver.observe(im);
+    else queueMicrotask(()=>activateImage(im));
+    return im;
+  }
+  function smartBackground(node,src,prefix=''){
+    // Evita que una descarga antigua reemplace el canal seleccionado ahora.
+    node.dataset.backgroundSrc=src||'';
+    node.style.backgroundImage='';
+    if(!src)return;
+    loadArtwork(src,true).then(()=>{
+      if(node.dataset.backgroundSrc===src)node.style.backgroundImage=prefix+'url('+JSON.stringify(src)+')';
+    }).catch(()=>{});
+  }
+  function appendGridInBatches(container,items,build=poster,batchSize=28){
+    const old=gridObservers.get(container);
+    if(old){old.disconnect();gridObservers.delete(container);}
+    let offset=0;
+    const loadMore=btn('Cargar más','load-more-posters',()=>addBatch());
+    const addBatch=()=>{
+      const next=Math.min(offset+batchSize,items.length);
+      const fragment=document.createDocumentFragment();
+      for(;offset<next;offset++)fragment.append(build(items[offset]));
+      if(loadMore.isConnected)container.insertBefore(fragment,loadMore);
+      else container.append(fragment);
+      if(offset>=items.length){
+        const observer=gridObservers.get(container);
+        if(observer){observer.disconnect();gridObservers.delete(container);}
+        loadMore.remove();
+      }else if(!loadMore.isConnected){container.append(loadMore);}
+    };
+    addBatch();
+    if(offset<items.length&&typeof IntersectionObserver==='function'){
+      const observer=new IntersectionObserver(entries=>{
+        if(entries.some(entry=>entry.isIntersecting))addBatch();
+      },{rootMargin:'650px 0px'});
+      observer.observe(loadMore);gridObservers.set(container,observer);
+    }
+  }
+  function btn(label,klass,onClick){const b=el('button',klass,label);b.type='button';b.addEventListener('click',onClick);return b;}
+  function categoryIcon(i){return i?.kind==='section'? '▤':'▦';}
+
+  function openItem(item,mode=''){
+    if(!item)return;
+    closeDetails();
+    if(item.kind==='donation'){showDonation();return;}
+    if(item.kind==='asset') {
+      state.lastAsset=item;
+      state.pendingAsset=item;
+      state.detailOrigin=state.searchActive?'Búsqueda':state.nativePage;
+      state.episodeIndex=0;
+      state.selectedSeason=1;
+    }
+    const index=Number(item.index);
+    if(Number.isInteger(index)&&index>=0)invoke('xuperSelectItem',mode?index+':'+mode:index);
+  }
+  function favorite(item){if(!isChannel(item))return;const index=Number(item.index);if(Number.isInteger(index))invoke('xuperFavorite',index);closeDetails();}
+  function navigate(page){
+    closeDetails();page=route(page);
+    if(page==='Apoyar'){showDonation();return;}
+    state.page=page;
+    state.nativePage=page;
+    state.detailMode=false;
+    state.searchActive=false;state.searchPending=false;state.searchFailed=false;
+    state.searchQuery='';state.searchMessage='';
+    state.pendingAsset=null;
+    state.detailAsset=null;
+    state.signature='';
+    switchScreen(page);
+    if(!invoke('xuperNavigate',page)&&state.demo){render();}
+  }
+  function showDonation(){state.donateFrom=state.page==='Apoyar'?state.nativePage:state.page;state.page='Apoyar';switchScreen('Apoyar');}
+  function leaveDonation(){state.page=state.nativePage||state.donateFrom||'Inicio';switchScreen(state.page);render();}
+  function switchScreen(page){
+    const map={'Inicio':'screen-home','TV en vivo':'screen-tv','Películas':'screen-vod','Series':'screen-series','Favoritos':'screen-favorites','Apoyar':'screen-donation'};
+    let screen=state.detailMode?'screen-detail':state.searchActive?'screen-search':map[page]||'screen-home';
+    if(!map[page]&&!state.detailMode&&!state.searchActive)screen= state.nativePage==='TV en vivo'?'screen-tv':state.nativePage==='Series'?'screen-series':state.nativePage==='Favoritos'?'screen-favorites':'screen-vod';
+    $$('.app-screen').forEach(node=>node.classList.toggle('active',node.id===screen));
+    document.body.classList.toggle('detail-active',state.detailMode&&state.page!=='Apoyar');
+    $$('[data-nav]').forEach(node=>node.classList.toggle('active',route(node.dataset.nav)===page));
+  }
+  function setPage(page){
+    state.nativePage=route(page);
+    if(state.page!=='Apoyar')state.page=state.nativePage;
+    switchScreen(state.page);
+  }
+  function setStatus(value){
+    state.status=String(value||'').trim();
+    const foot=$('#sidebar-status');if(foot)foot.textContent=short(state.status||'Aplicación lista',145);
+    if(state.searchActive&&state.searchPending&&!/^Buscando\b/i.test(state.status)){
+      state.searchPending=false;
+      state.searchFailed=true;
+      state.searchMessage=state.status||'No se pudo completar la búsqueda.';
+      renderSearch();
+    }
+  }
+  function renderCatalog(items, selected=0, metadata={}, root=[]){
+    const list=Array.isArray(items)?items.filter(x=>x&&typeof x==='object').map((item,index)=>({...item,index:Number.isInteger(Number(item.index))?Number(item.index):index})):[];
+    const title=(metadata && typeof metadata.title==='string'&&metadata.title.trim())?metadata.title.trim():state.nativePage;
+    const meta=metadata&&typeof metadata==='object'?metadata:{};
+    const signature=JSON.stringify({page:state.nativePage,title,items:list,metadata:meta});
+    const changed=signature!==state.signature;
+    // A ficha real del servicio devuelve episodios. Son la señal para mostrar
+    // los detalles con el diseño de la referencia, NO para listar 48 pósteres idénticos.
+    const episodes=list.filter(item=>item.kind==='episode');
+    const episodeCatalog=episodes.length>0 && episodes.length===list.length;
+    const isSearchResult=/^Resultados(?:\s+de\s+busqueda|\s*:\s*)/i.test(title);
+    if(isSearchResult){
+      state.searchActive=true;state.searchPending=false;state.searchFailed=false;
+      state.searchMessage='';
+      const resultQuery=title.match(/^Resultados\s*:\s*(.+)$/i);
+      if(resultQuery)state.searchQuery=resultQuery[1].trim();
+    }else if(!state.searchPending&&!episodeCatalog){
+      // Cuando el motor devuelve el catalogo anterior tras Volver,
+      // abandonar realmente la pantalla de resultados.
+      state.searchActive=false;state.searchFailed=false;
+    }
+    // Igual para títulos que llegan desde DESTACADOS, búsqueda o su sección.
+    // La señal es el Asset seleccionado, no el botón de navegación activo.
+    state.detailMode=episodeCatalog && Boolean(state.pendingAsset||state.detailAsset);
+    if(state.detailMode&&state.pendingAsset) {
+      state.detailAsset=state.pendingAsset;
+      state.pendingAsset=null;
+    }
+    if(!episodeCatalog){state.pendingAsset=null;state.detailAsset=null;}
+    if(!state.detailMode && list.some(item=>item.kind==='asset')){
+      const found=list.filter(item=>item.kind==='asset');
+      // Solo guarda los datos del catálogo para mostrar sugerencias visuales.
+      // Al escoger un sugerido se realiza una búsqueda; no se reutilizan índices de otra página.
+      const known=new Set(state.discovered.map(item=>String(item.content_id||item.title)));
+      for(const item of found){const key=String(item.content_id||item.title);if(!known.has(key)){state.discovered.push(item);known.add(key);}}
+      if(state.discovered.length>60)state.discovered=state.discovered.slice(-60);
+    }
+    state.items=list;state.root=Array.isArray(root)?root:[];state.title=title;state.selected=Math.max(0,Number(selected)||0);state.metadata=meta;
+    if(!changed){highlight();if(state.searchActive&&!state.searchPending)renderSearch();return;}
+    state.signature=signature;
+    if(state.page!=='Apoyar')render();
+  }
+  function highlight(){
+    $$('.ch-row').forEach(b=>b.classList.toggle('active',Number(b.dataset.index)===state.selected));
+    $$('.card-poster').forEach(c=>c.classList.toggle('focused',Number(c.dataset.index)===state.selected));
+  }
+  function fallbackFor(i,landscape=false){return el('div','poster-fallback'+(landscape?' landscape':''),initials(i));}
+  function poster(i){
+    const wrapper=el('div','card-poster');wrapper.dataset.index=String(i.index);
+    const click=btn('','poster-click',()=>openItem(i));click.setAttribute('aria-label','Abrir '+String(i.title||'contenido'));
+    const imageWrap=el('div','img-wrap');const photo=img(i);imageWrap.append(photo||fallbackFor(i));
+    if(i.kind==='asset'||i.kind==='episode'){imageWrap.append(el('span','badge-score-left',typeLabel(i)));}
+    if(isCategory(i))imageWrap.append(el('span','badge-hd-right','VER'));
+    click.append(imageWrap);wrapper.append(click,el('span','title',i.title||'Sin título'));
+    return wrapper;
+  }
+  function landscape(i){
+    const w=el('div','card-landscape');const click=btn('','',()=>openItem(i));click.setAttribute('aria-label','Abrir '+String(i.title||'contenido'));
+    const photo=img(i);click.append(photo||fallbackFor(i,true),el('div','badge-title',i.title||'Sin título'));w.append(click);return w;
+  }
+  function section(title,items,style='landscape',onAll=null){
+    if(!items.length)return null;
+    const box=el('section');const head=el('div','section-heading');head.append(el('h2','section-title',title));
+    if(onAll)head.append(btn('VER TODO ›','section-action',()=>navigate(onAll)));
+    const row=el('div','cards-row');items.slice(0,24).forEach(item=>row.append((style==='poster'?poster:landscape)(item)));
+    box.append(head,row);return box;
+  }
+  function hero(i){
+    const box=el('div','hero-box');
+    const photo=img(i,true);if(photo){photo.classList.add('cover-photo');box.append(photo);}else box.append(el('div','hero-no-image',initials(i)));
+    const overlay=el('div','overlay');overlay.append(el('h1','',i?.title||'Descubre Xuper TV'));overlay.append(el('span','subtitle',short(description(i,'Películas, series y televisión en vivo.'),78)));
+    const dots=el('div','dots-indicator');for(let j=0;j<3;j++)dots.append(el('span',j===0?'active':''));overlay.append(dots);
+    box.append(overlay,btn('','hero-hit',()=>i?openItem(i):navigate('Películas')));return box;
+  }
+  function renderHome(){
+    const parent=$('#home-content');parent.replaceChildren();
+    const assets=state.items.filter(i=>i.kind==='asset');const movies=assets.filter(i=>String(i.program_type)==='1');const series=assets.filter(i=>String(i.program_type)==='0');
+    const sections=state.items.filter(i=>['section','category','vod-category','live-section'].includes(i.kind));
+    const samples=assets.length?assets:sections.length?sections:state.items;
+    const heroes=el('section','hero-split');
+    if(samples[0])heroes.append(hero(samples[0]));else heroes.append(hero(null));
+    if(samples[1])heroes.append(hero(samples[1]));else heroes.append(hero(samples[0]||null));
+    parent.append(heroes);
+    const rows=[
+      section('Películas destacadas',movies,'landscape','Películas'),
+      section('Nuevos títulos para descubrir',assets,'poster','Películas'),
+      section('Series en tu catálogo',series,'poster','Series'),
+      section('Explorar categorías',sections,'landscape'),
+      section('Tu biblioteca',state.items.filter(i=>['favorites','resume'].includes(i.kind)),'landscape')
+    ];
+    rows.filter(Boolean).forEach(s=>parent.append(s));
+    if(state.items.length===0)parent.append(el('p','empty-message','Cargando tu catálogo. Si no aparece contenido, comprueba la conexión y vuelve a intentarlo.'));
+  }
+  function categoryPane(items,target){
+    const list=$(target);list.replaceChildren();
+    if(items.some(isCategory)){
+      items.filter(isCategory).forEach(item=>{
+        const row=btn('','vod-cat-item',()=>openItem(item));row.append(el('span','',item.title||'Categoría'),el('span','cat-counter','›'));
+        if(Number(item.index)===state.selected)row.classList.add('active');list.append(row);
+      });
+    }else{
+      const total=btn('','vod-cat-item active',()=>{});total.append(el('span','','Todos'),el('span','cat-counter',items.length));list.append(total);
+    }
+  }
+  function gridPage(kind){
+    const prefix=kind==='Series'?'series':'movie';const root=kind==='Series'?'screen-series':'screen-vod';
+    const count=state.items.length;
+    $(`#${prefix}-title`).textContent=state.title||kind;
+    $(`#${prefix}-count`).textContent='Total: '+count+' elementos';
+    categoryPane(state.items,`#${prefix}-cats`);
+    const grid=$(`#${prefix}-grid`);const oldGridObserver=gridObservers.get(grid);if(oldGridObserver){oldGridObserver.disconnect();gridObservers.delete(grid);}grid.replaceChildren();
+    if(!count){grid.append(el('p','empty-message','No hay contenido disponible en esta sección.'));return;}
+    appendGridInBatches(grid,state.items,poster,30);
+    const pane=$(root);if(pane){const main=$('.vod-catalog-main',pane);if(main)main.scrollTop=0;}
+  }
+  function favorites(){
+    $('#favorites-title').textContent=state.title||'Favoritos';$('#favorites-count').textContent=state.items.length+' elementos';
+    const grid=$('#favorites-grid');const oldGridObserver=gridObservers.get(grid);if(oldGridObserver){oldGridObserver.disconnect();gridObservers.delete(grid);}grid.replaceChildren();
+    if(!state.items.length)grid.append(el('p','empty-message','No tienes canales guardados. Añade uno a favoritos desde su ficha.'));
+    else appendGridInBatches(grid,state.items,poster,30);
+  }
+  function renderTv(){
+    const channels=state.items.filter(isChannel),categories=state.items.filter(isCategory);
+    const list=$('#tv-list');list.replaceChildren();
+    $('#tv-title').textContent=state.title||'TV en vivo';
+    const source=channels.length?channels:categories;
+    if(!source.length)list.append(el('p','empty-message','No se encontraron canales o categorías.'));
+    else source.forEach((item,idx)=>{
+      const row=btn('','ch-row',()=>{ state.preview=item;showTvPreview(item);if(isChannel(item)){state.selected=Number(item.index);highlight();}else openItem(item);});
+      row.dataset.index=String(item.index);
+      if(Number(item.index)===state.selected)row.classList.add('active');
+      row.append(el('span','ch-num',String(idx+1).padStart(2,'0')),el('span','ch-name',item.title||'Canal'));
+      if(isChannel(item))row.append(el('span','ch-badge','TV'));
+      list.append(row);
+    });
+    state.preview=source.find(i=>Number(i.index)===state.selected)||source[0]||null;
+    showTvPreview(state.preview);
+    const chips=$('#live-categories');chips.replaceChildren();
+    if(channels.length){
+      const all=btn('TODOS','cat-chip active',()=>{});chips.append(all);
+      chips.append(btn('FAVORITOS','cat-chip',()=>navigate('Favoritos')));
+      chips.append(el('span','channel-now-tag',channels.length+' canales disponibles'));
+    }else{
+      categories.slice(0,9).forEach((cat,idx)=>{
+        const button=btn(cat.title||'Categoría','cat-chip'+(idx===0?' active':''),()=>openItem(cat));chips.append(button);
+      });
+    }
+  }
+  function showTvPreview(item){
+    $('#live-title').textContent=item?.title||'Televisión en vivo';
+    $('#live-desc').textContent=short(description(item,'Selecciona una categoría o canal para continuar.'),160);
+    const bg=$('#live-backdrop');const src=art(item);smartBackground(bg,src,'linear-gradient(90deg,rgba(0,0,0,.58),rgba(0,0,0,.15)), ');
+    const b=$('#play-selected-live');b.textContent=isChannel(item)?'▶ Reproducir canal':'↗ Abrir categoría';b.onclick=()=>openItem(item);
+  }
+  // === FICHA A PANTALLA COMPLETA: estructura fiel al HTML y a las capturas ===
+  const selectedEpisode=()=>state.items[state.episodeIndex]||state.items[0]||null;
+  function episodeGroups(){
+    const seasons=new Map();
+    state.items.filter(item=>item.kind==='episode').forEach((item,index)=>{
+      const t=String(item.title||'');
+      const match=t.match(/(?:temporada\s*(\d+)|\bT(\d+)\s*[-:]?\s*E\d+)/i);
+      const season=match?Number(match[1]||match[2]):1;
+      if(!seasons.has(season))seasons.set(season,[]);
+      seasons.get(season).push({...item,index,episodeNo:seasons.get(season).length+1});
+    });
+    return Array.from(seasons.entries()).sort((a,b)=>a[0]-b[0]);
+  }
+  function renderSeason(index){
+    const seasons=state.detailSeasons;
+    const group=seasons.find(([n])=>n===index)||seasons[0];if(!group)return;
+    const [number,entries]=group;
+    state.selectedSeason=number;
+    $('#season-selected-text').textContent='Temporada '+number;
+    $('#detail-episode-range').textContent='1-'+entries.length;
+    const pane=$('#detail-episode-list');pane.replaceChildren();
+    entries.forEach((episode)=>{
+      const b=btn(String(episode.episodeNo),'ep-num-cell'+(episode.index===state.episodeIndex?' active':''),()=>{
+        state.episodeIndex=episode.index;
+        // Primer clic selecciona, reproducción mediante el botón Reproducir.
+        renderSeason(number);
+      });
+      b.title=episode.title||('Episodio '+episode.episodeNo);
+      pane.append(b);
+    });
+    const first=entries.find(e=>e.index===state.episodeIndex)||entries[0];
+    $('#detail-episode-code').textContent='T'+number+' - E'+first.episodeNo;
+  }
+  function detailRelated(isSeries){
+    const row=$('#detail-related');row.replaceChildren();
+    const source=state.discovered.filter(item=>item.kind==='asset' && String(item.program_type)===(isSeries?'0':'1'));
+    const unique=[];const seen=new Set();
+    for(const item of source){
+      const name=String(item.title||'');if(!name||name===state.title||seen.has(name))continue;
+      seen.add(name);unique.push(item);
+    }
+    $('#detail-related-title').textContent=isSeries?'Recomendadas':'Quizás te guste';
+    if(!unique.length){row.append(el('div','ref-related-empty','Las recomendaciones aparecerán después de explorar otros títulos.'));return;}
+    unique.slice(0,9).forEach(item=>{
+      const card=btn('','bottom-card-rec',()=>{
+        const q=String(item.title||'').trim();
+        if(q){state.detailMode=false;state.signature='';invoke('xuperSearch',q);}
+      });
+      const cover=el('div','poster-wrap');const photo=img(item);if(photo)cover.append(photo);else cover.append(fallbackFor(item));
+      cover.append(el('span','badge-cc-right','CC'));
+      const title=el('span','caption-rec',item.title||'Título');card.append(cover,title);row.append(card);
+    });
+  }
+  function renderReferenceDetail(){
+    const m=state.metadata||{};
+    const isSeries=String(state.detailAsset?.program_type||state.items[0]?.program_type||state.lastAsset?.program_type)==='0';
+    const episodios=state.items.filter(item=>item.kind==='episode');
+    if(!episodios.length){state.detailMode=false;return;}
+    state.episodeIndex=Math.min(state.episodeIndex,episodios.length-1);
+    $('#detail-back-text').textContent=state.detailOrigin==='Inicio'?'Volver a Destacados':
+      state.detailOrigin==='Favoritos'?'Volver a Favoritos':
+      state.detailOrigin==='Búsqueda'?'Volver a resultados':
+      isSeries?'Volver al Catálogo de Series':'Volver al Catálogo de Películas';
+    $('#detail-title').textContent=state.detailAsset?.title||m.title||state.title||'Contenido';
+    const rating=String(m.rating||'').trim();
+    $('#detail-score').hidden=!rating;
+    $('#detail-score').textContent=rating;
+    const meta=[m.country,m.release_date].filter(Boolean).join(' | ');
+    $('#detail-meta').textContent=meta;
+    const genreRow=$('#detail-genre-row');genreRow.hidden=!m.genres;
+    const badges=$('#detail-genres');badges.replaceChildren();
+    String(m.genres||'').split(/[,;|/]/).map(v=>v.trim()).filter(Boolean).slice(0,6).forEach(g=>badges.append(el('span','tag-badge',g)));
+    for(const [key,value] of [['director',m.director],['actors',m.actors]]){
+      $('#detail-'+key+'-row').hidden=!value;
+      $('#detail-'+key).textContent=value||'';
+    }
+    $('#detail-synopsis').textContent=m.description||state.detailAsset?.description||'Sinopsis no proporcionada por el catálogo.';
+    const platform=$('#detail-platform'),icon=$('#detail-preview-icon');
+    platform.hidden=!m.platform;icon.hidden=!!m.platform;
+    platform.textContent=m.platform||'';
+    const play=()=>openItem(selectedEpisode());
+    $('#detail-play').onclick=play;$('#detail-preview').onclick=play;
+    $('#detail-language').onclick=()=>openItem(selectedEpisode(),'audio');
+    $('#detail-resolution').onclick=()=>openItem(selectedEpisode(),'quality');
+    $('#detail-fav').onclick=()=>{
+      const episode=selectedEpisode();
+      if(episode&&Number.isInteger(Number(episode.index)))invoke('xuperFavorite',episode.index);
+    };
+    // Iniciar el reproductor SDL en fullscreen, no solo maximizar la UI WebView.
+    $('#detail-fullscreen').onclick=()=>openItem(selectedEpisode(),'fullscreen');
+    state.detailSeasons=episodeGroups();
+    $('#detail-seasons').hidden=!isSeries;
+    $('#detail-episode-code').hidden=!isSeries;
+    if(isSeries){
+      const menu=$('#season-popover');menu.replaceChildren();
+      state.detailSeasons.forEach(([number])=>menu.append(btn('Temporada '+number,'season-popover-item',()=>{renderSeason(number);menu.classList.remove('show');})));
+      const defaultSeason=state.detailSeasons.some(([n])=>n===state.selectedSeason)?state.selectedSeason:state.detailSeasons[0]?.[0]||1;
+      renderSeason(defaultSeason);
+    }
+    detailRelated(isSeries);
+    switchScreen(state.page);
+    const pane=$('#screen-detail');if(pane)pane.scrollTop=0;
+  }
+  function render(){
+    if(state.page==='Apoyar'){switchScreen('Apoyar');return;}
+    switchScreen(state.page);
+    if(state.detailMode){renderReferenceDetail();return;}
+    if(state.searchActive){renderSearch();return;}
+    switch(state.nativePage){
+      case 'Inicio':renderHome();break;
+      case 'Películas':gridPage('Películas');break;
+      case 'Series':gridPage('Series');break;
+      case 'TV en vivo':renderTv();break;
+      case 'Favoritos':favorites();break;
+      default:gridPage('Películas');break;
+    }
+  }
+  let activeDetails=null;
+  function openDetails(item){
+    activeDetails=item;const layer=$('#details-overlay');
+    $('#details-title').textContent=item.title||'Sin título';
+    $('#details-description').textContent=description(item);
+    $('#details-type').textContent=typeLabel(item);
+    const a=art(item);smartBackground($('#details-art'),a);
+    const play=$('#details-play');play.textContent=isCategory(item)?'↗ Abrir sección':'▶ Ver contenido';play.onclick=()=>openItem(item);
+    const star=$('#details-favorite');star.hidden=!isChannel(item);star.onclick=()=>favorite(item);
+    layer.hidden=false;
+  }
+  function closeDetails(){activeDetails=null;$('#details-overlay').hidden=true;}
+  function updateClock(){
+    const d=new Date();const t=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    $('#clock').textContent=t;$('#tv-clock').textContent=t;
+  }
+  function bind(){
+    $$('[data-nav]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.nav)));
+    $('#back-btn').addEventListener('click',()=>{if(state.page==='Apoyar')leaveDonation();else invoke('xuperBack');});
+    $('#donate-back').addEventListener('click',leaveDonation);
+    $('#fullscreen-btn').addEventListener('click',()=>invoke('xuperFullscreen'));
+    $('#tv-search').addEventListener('click',openSearchBox);
+    $('#open-paypal').addEventListener('click',()=>{
+      if(!invoke('xuperOpenPaypal'))window.open(PAYPAL_URL,'_blank','noopener,noreferrer');
+    });
+    $('#detail-back').addEventListener('click',()=>{state.detailMode=false;invoke('xuperBack');});
+    $('#detail-season-button').addEventListener('click',e=>{if(e.target.closest('.season-popover'))return;$('#season-popover').classList.toggle('show');});
+    $('#search-toggle').addEventListener('click',()=>{if(document.body.classList.contains('search-open'))document.body.classList.remove('search-open');else openSearchBox();});
+    $('#filter-btn').addEventListener('click',openSearchBox);
+    $('#recent-btn').addEventListener('click',()=>navigate('Inicio'));
+    $('#user-btn').addEventListener('click',()=>setStatus('Xuper TV NF — Edición para Vega OS.'));
+    $('#notice-btn').addEventListener('click',()=>setStatus(state.status));
+    $('#search-form').addEventListener('submit',e=>{e.preventDefault();startSearch($('#search-input').value);});
+    $('#search-back').addEventListener('click',leaveSearch);
+    $('#search-again').addEventListener('click',openSearchBox);
+    $('#details-close').addEventListener('click',closeDetails);
+    $('#details-overlay').addEventListener('click',e=>{if(e.target===$('#details-overlay'))closeDetails();});
+    document.addEventListener('keydown',e=>{
+      const typing=['INPUT','TEXTAREA'].includes(document.activeElement?.tagName||'');
+      if(e.key==='Escape'){if(document.body.classList.contains('search-open')){document.body.classList.remove('search-open');return;}if(!$('#details-overlay').hidden){closeDetails();return;}if(state.page==='Apoyar'){leaveDonation();return;}if(state.detailMode){state.detailMode=false;invoke('xuperBack');return;}if(state.searchActive){leaveSearch();return;}invoke('xuperBack');}
+      if((e.key==='/'||(e.ctrlKey&&e.key.toLowerCase()==='f'))&&!typing){e.preventDefault();openSearchBox();}
+      if(e.key==='F11'){e.preventDefault();invoke('xuperFullscreen');}
+      if(e.ctrlKey&&e.key.toLowerCase()==='q'){e.preventDefault();invoke('xuperQuit');}
+    });
+    updateClock();setInterval(updateClock,20000);
+  }
+
+  window.xuperUI=Object.freeze({setPage,renderCatalog,setStatus});
+  bind();
+  if(!invoke('xuperReady')){
+    // Datos exclusivamente para previsualización independiente del HTML, nunca como catálogo de usuario.
+    state.demo=true;
+    const sample=[
+      {title:'La Constelación del Perro',description:'Ciencia ficción y aventura',kind:'asset',program_type:'0',artwork:'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=900'},
+      {title:'Cruzados',description:'Una historia de acción y suspenso',kind:'asset',program_type:'1',artwork:'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=900'},
+      {title:'Fall 2: Deadpoint',description:'Una experiencia de suspenso',kind:'asset',program_type:'1',artwork:'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600'},
+      {title:'Shōgun',description:'Drama histórico',kind:'asset',program_type:'0',artwork:'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600'},
+      {title:'Películas',description:'Explorar películas',kind:'section',program_type:'1'},
+      {title:'Series',description:'Explorar series',kind:'section',program_type:'0'},
+      {title:'Favoritos',description:'Mis canales guardados',kind:'favorites'}
+    ].map((s,index)=>({...s,index}));
+    setPage('Inicio');renderCatalog(sample,0,{title:'Inicio'});setStatus('Vista previa del diseño de referencia. Contenido de demostración.');
+  }
+})();
+</script>
+</body></html>

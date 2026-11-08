@@ -1,0 +1,31 @@
+XUPER TV NF — PORT NATIVO PARA VEGA OS / ESTADO
+
+Este proyecto contiene código fuente experimental de una aplicación independiente.
+El código de la app usa un módulo C++ que arranca un servidor de loopback
+SOLO dentro del Fire TV (127.0.0.1). No se requiere Ubuntu encendido una vez
+que se consiga compilar e instalar correctamente.
+
+COMPROBADO EN ESTE ENTORNO
+- Diseño HTML idéntico byte a byte al del ZIP proporcionado.
+- Sintaxis del gateway C++, inicialización nativa y utilidades sin errores
+  mediante g++ (no equivale a compilar con la toolchain de Vega).
+- Sintaxis de componentes TypeScript y scripts Bash y Python.
+- Flujo de preparación de carpetas y parche del stub del Turbo Module con
+  herramientas Vega simuladas, sin JSON privados.
+- Gateway HTTP local con un backend simulado: autentica la API local y
+  rechaza solicitudes sin clave.
+
+NO COMPROBADO / NO PROMETER COMO FUNCIONAL
+- Compilación real del .vpkg con Vega SDK 0.24.9914.
+- SDK codegen y enlazado C++/CMake con libcurl y MbedTLS para Vega.
+- Autorización real del catálogo y reproducción con el servicio del usuario.
+- Reproducción HLS/DASH, contenidos DRM y compatibilidad final del dispositivo.
+
+NO SE INCLUYEN CREDENCIALES PRIVADAS EN ESTE ZIP.
+Para compilar PERSONALMENTE, copiar service.json y device_state.json
+(de la misma instalación Windows que funciona) a private-config/.
+El .vpkg resultante puede contener las credenciales: no distribuirlo.
+
+SI FALLA:
+Enviar las primeras líneas que contengan ERROR del comando
+./PREPARAR-Y-COMPILAR.sh (sin compartir JSON ni claves privadas).

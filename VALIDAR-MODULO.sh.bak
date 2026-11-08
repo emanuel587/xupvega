@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$ROOT/XuperTVNF-vega-project/build"
+[[ -d "$DIR" ]] || { echo 'ERROR: no hay build. Compila primero.'; exit 1; }
+mapfile -d '' libs < <(find "$DIR" -type f -name 'libxupernative.so' -print0)
+[[ "${#libs[@]}" -gt 0 ]] || { echo 'ERROR: falta libxupernative.so en build'; exit 1; }
+command -v readelf >/dev/null || { echo 'Instala binutils para inspeccionar los símbolos: sudo apt install binutils'; exit 1; }
+pass=0
+for lib in "${libs[@]}"; do
+  echo "Comprobando: $lib"
+  if readelf --dyn-syms --wide "$lib" | grep -qE '[[:space:]]autoLinkVegaTurboModulesV1($|@)'; then
+    echo 'OK: el símbolo de registro está exportado en la biblioteca.'
+    pass=$((pass+1))
+  else
+    echo 'ERROR: no se exportó autoLinkVegaTurboModulesV1.'
+    exit 1
+  fi
+done
+[[ "$pass" -gt 0 ]]
+echo 'AVISO: esto no verifica que la biblioteca esté incluida ni registrada en el VPKG.'

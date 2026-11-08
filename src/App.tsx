@@ -1,0 +1,211 @@
+/* Xuper TV NF Vega OS - catálogo original mediante módulo C++ integrado en Fire TV.
+ * Conserva exactamente la interfaz HTML aprobada para Windows.
+ */
+import * as React from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
+import {BackHandler,Linking,StyleSheet,Text,View} from 'react-native';
+import {WebView} from '@amazon-devices/webview';
+import {XuperPlayer} from './Player';
+import {TurboModuleRegistry} from '@amazon-devices/keplerscript-turbomodule-api';
+import {remote,configured,RemoteCatalog,RemoteEntry,RemoteResult} from './RemoteService';
+const PAYPAL='https://paypal.me/dona326';
+type Msg={action?:string;value?:string};
+type Screen={page:string;title:string;entries:RemoteEntry[];metadata?:Record<string,string>};
+type PlayState={title:string;source:string;live:boolean}|null;
+const EMPTY:RemoteCatalog={title:'Inicio',entries:[]};
+const staticItems:RemoteEntry[]=[
+  {id:'nav:tv',title:'TV en vivo',kind:'live-section'},
+  {id:'nav:movies',title:'Películas',kind:'section',program_type:'1'},
+  {id:'nav:series',title:'Series',kind:'section',program_type:'0'},
+  {id:'nav:fav',title:'Favoritos',kind:'favorites'},
+  {id:'nav:donate',title:'Apoyar el desarrollo',kind:'donation'},
+];
+const metadata=(catalog:RemoteCatalog):Record<string,string>=>({
+  title:catalog.title||'Xuper TV NF',description:catalog.description||'',
+  artwork:catalog.artwork||'',rating:catalog.rating||'',genres:catalog.genres||'',
+  country:catalog.country||'',release_date:catalog.release_date||'',
+  director:catalog.director||'',actors:catalog.actors||'',platform:catalog.platform||'',
+});
+const screen=(page:string,c:RemoteCatalog):Screen=>({page,title:c.title||page,entries:c.entries||[],metadata:metadata(c)});
+export const App=()=>{
+  const web=useRef<any>(null);
+  const current=useRef<Screen>(screen('Inicio',EMPTY));
+  const history=useRef<Screen[]>([]);
+  const root=useRef<RemoteCatalog>(EMPTY);
+  const featured=useRef<RemoteCatalog>(EMPTY);
+  const favorites=useRef<string[]>([]);
+  const seen=useRef<Record<string,RemoteEntry>>({});
+  const ready=useRef(false);
+  const localStarted=useRef(false);
+  const [video,setVideo]=useState<PlayState>(null);
+  const [nativeStatus,setNativeStatus]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [webReady,setWebReady]=useState(false);
+  const [serviceError,setServiceError]=useState('');
+  const page=useRef('Inicio');
+  const inject=useCallback((code:string)=>web.current?.injectJavaScript(code+'\ntrue;'),[]);
+  const message=useCallback((s:string)=>{
+    setNativeStatus(s);
+    inject('window.xuperUI&&window.xuperUI.setStatus('+JSON.stringify(s)+');');
+  },[inject]);
+  const show=useCallback((v:Screen,selected=0,status='Catálogo listo.')=>{
+    current.current=v;
+    const entries=v.entries.map((item,index)=>({...item,index}));
+    for(const item of entries)if(item.id)seen.current[item.id]=item;
+    inject('if(window.xuperUI){window.xuperUI.setPage('+JSON.stringify(v.page)+');'+
+      'window.xuperUI.renderCatalog('+JSON.stringify(entries)+','+selected+','+
+      JSON.stringify({title:v.title,...v.metadata})+','+
+      JSON.stringify(root.current.entries||[])+');'+
+      'window.xuperUI.setStatus('+JSON.stringify(status)+');}');
+    setNativeStatus(status);
+  },[inject]);
+  const home=useCallback(()=>{
+    const v=screen('Inicio',{...featured.current,title:'Inicio',entries:[...featured.current.entries,...staticItems]});
+    page.current='Inicio';history.current=[];show(v);
+  },[show]);
+  const navigate=useCallback((to:string)=>{
+    const next=to==='TV'?'TV en vivo':to;
+    if(!['Inicio','TV en vivo','Películas','Series','Favoritos'].includes(next))return;
+    if(next==='Inicio'){home();return;}
+    page.current=next;history.current=[];
+    if(next==='TV en vivo'){
+      show({page:next,title:'TV en vivo',entries:root.current.entries.filter(e=>e.kind==='category')});
+    }else if(next==='Películas'||next==='Series'){
+      const t=next==='Películas'?'1':'0';
+      // Mostrar títulos reales de Inicio inmediatamente, con acceso a todas las categorías.
+      const sample=featured.current.entries.filter(e=>e.kind==='asset'&&e.program_type===t);
+      const sections=root.current.entries.filter(e=>e.kind==='section'&&e.program_type===t);
+      show({page:next,title:next,entries:[...sample,...sections]});
+    }else{
+      const found=favorites.current.map(id=>seen.current[id]).filter((entry):entry is RemoteEntry=>Boolean(entry));
+      show({page:next,title:next,entries:found});
+    }
+  },[home,show]);
+  const back=useCallback(()=>{
+    if(history.current.length){show(history.current.pop()!);return;}
+    if(page.current!=='Inicio')home();else message('Ya estás en Inicio.');
+  },[home,message,show]);
+  useEffect(()=>{
+    if(video)return;
+    const sub=BackHandler.addEventListener('hardwareBackPress',()=>{back();return true;});
+    return ()=>sub.remove();
+  },[video,back]);
+  const activate=useCallback(async()=>{
+    if(!configured){message('Recompila con los archivos de tu instalación Windows.');return;}
+    if(!localStarted.current){message('El módulo C++ todavía no ha iniciado.');return;}
+    setBusy(true);setServiceError('');message('Conectando al catálogo original…');
+    try{
+      const start=await remote.start();
+      root.current=start.root||EMPTY;featured.current=start.featured||EMPTY;
+      home();message((start.featured?.entries?.length||0)+' títulos destacados cargados.');
+    }catch(e){const err=String((e as Error).message||e);message(err);setServiceError(err);}
+    finally{setBusy(false);}
+  },[home,message]);
+  useEffect(()=>{
+    try{
+      const lookup=(TurboModuleRegistry as any)?.get;
+      if(typeof lookup!=='function'){
+        throw new Error('La API TurboModuleRegistry no dispone de get().');
+      }
+      const XuperDevice=lookup.call(TurboModuleRegistry,'XuperDevice');
+      if(!XuperDevice || typeof XuperDevice.launch!=='function'){
+        throw new Error('XuperDevice no registrado: verifica libxupernative.so, autoLinkVegaTurboModulesV1 y react-native.config.js.');
+      }
+      const result=XuperDevice.launch();
+      if(!/^http:\/\/127\.0\.0\.1:\d+$/.test(result)){
+        const msg='No se pudo iniciar el servicio integrado: '+String(result).slice(0,180);
+        setServiceError(msg);message(msg);return;
+      }
+      localStarted.current=true;
+      if(ready.current)activate();
+    }catch(error){
+      const msg='Error del módulo nativo Vega: '+String(error).slice(0,200);
+      setServiceError(msg);message(msg);
+    }
+  },[activate,message]);
+  const open=useCallback(async(item:RemoteEntry,mode='')=>{
+    if(item.kind==='donation'){Linking.openURL(PAYPAL).catch(()=>message('No se pudo abrir PayPal.'));return;}
+    if(item.kind==='favorites'){navigate('Favoritos');return;}
+    if(item.kind==='live-section'){navigate('TV en vivo');return;}
+    if(item.id==='nav:movies'){navigate('Películas');return;}
+    if(item.id==='nav:series'){navigate('Series');return;}
+    if(busy)return;
+    if(item.kind==='episode'||item.kind==='channel'||item.kind==='media'){
+      setBusy(true);message('Preparando enlace de reproducción…');
+      try{
+        const r=await remote.play(item.id);
+        if(!r.url)throw Error('No se recibió enlace de video');
+        setVideo({title:item.title,source:r.url,live:item.kind==='channel'});
+      }catch(e){message(String((e as Error).message||e));}
+      finally{setBusy(false);}
+      return;
+    }
+    if(['section','vod-category','category','asset','vod-page','search-page'].includes(item.kind)){
+      setBusy(true);message('Cargando '+item.title+'…');
+      try{
+        const r:RemoteResult=await remote.open(item.id);
+        const next=screen(page.current,r.catalog);
+        history.current.push(current.current);
+        show(next,0,r.status||'Contenido cargado.');
+      }catch(e){message(String((e as Error).message||e));}
+      finally{setBusy(false);}
+      return;
+    }
+    message('Esta opción no tiene contenido disponible.');
+  },[busy,message,navigate,show]);
+  const onMessage=useCallback(async(event:any)=>{
+    let m:Msg;
+    try{m=JSON.parse(String(event?.nativeEvent?.data||''));}catch(_){return;}
+    const value=String(m.value||'');
+    switch(m.action){
+      case 'xuperReady':{
+        try{const f=JSON.parse(value);if(Array.isArray(f))favorites.current=f.filter(x=>typeof x==='string').slice(0,2000);}catch(_){}
+        ready.current=true;setWebReady(true);if(localStarted.current)await activate();break;
+      }
+      case 'xuperNavigate':navigate(value);break;
+      case 'xuperBack':back();break;
+      case 'xuperSearch':{
+        if(!value.trim())return;
+        setBusy(true);message('Buscando en el catálogo…');
+        try{const r=await remote.search(value.trim());history.current.push(current.current);
+          show(screen(page.current,{...r.catalog,title:'Resultados: '+value.trim()}),0,r.status||'Búsqueda completada.');}
+        catch(e){message(String((e as Error).message||e));}
+        finally{setBusy(false);}break;
+      }
+      case 'xuperSelectItem':{
+        const [indexText,mode='']=value.split(':');const idx=Number(indexText);
+        if(Number.isInteger(idx)&&idx>=0&&idx<current.current.entries.length)await open(current.current.entries[idx],mode);
+        break;
+      }
+      case 'xuperFavorite':{
+        const index=Number(value);const it=current.current.entries[index];if(!it)return;
+        favorites.current=favorites.current.includes(it.id)?favorites.current.filter(x=>x!==it.id):[...favorites.current,it.id];
+        inject('window.xuperVegaRememberFavorites('+JSON.stringify(favorites.current)+');');
+        message(favorites.current.includes(it.id)?'Guardado en favoritos.':'Quitado de favoritos.');break;
+      }
+      case 'xuperOpenPaypal':Linking.openURL(PAYPAL).catch(()=>message('No se pudo abrir PayPal.'));break;
+      case 'xuperFullscreen':message('Fire TV ya muestra el video en pantalla completa.');break;
+      case 'xuperPlay':{
+        const first=current.current.entries.find(e=>e.kind==='episode'||e.kind==='channel');
+        if(first)await open(first);else message('Selecciona primero un canal o episodio.');break;
+      }
+      case 'xuperQuit':BackHandler.exitApp();break;
+    }
+  },[activate,back,inject,message,navigate,open,show]);
+  return <View style={styles.container}>
+    <WebView ref={web} style={[styles.web,video?styles.hidden:null]}
+      source={{uri:'file:///pkg/assets/index.html'}} hasTVPreferredFocus={true}
+      allowSystemKeyEvents={true} javaScriptEnabled={true} onMessage={onMessage}
+      onLoad={()=>{if(ready.current)show(current.current);}}
+      onError={(event:any)=>message('No se pudo abrir la interfaz: '+String(event?.nativeEvent?.description||''))}/>
+    {video?<View style={styles.player}><XuperPlayer {...video} onBack={()=>setVideo(null)}/></View>:null}
+    {!video&&(serviceError||(!webReady&&nativeStatus))?<View style={styles.error}><Text style={styles.text}>{serviceError||nativeStatus}</Text></View>:null}
+  </View>;
+};
+const styles=StyleSheet.create({
+  container:{flex:1,backgroundColor:'#0b1118'},web:{flex:1,backgroundColor:'#0b1118'},
+  hidden:{opacity:0},player:{position:'absolute',left:0,right:0,top:0,bottom:0,backgroundColor:'#05090e'},
+  error:{position:'absolute',bottom:0,left:0,right:0,padding:14,backgroundColor:'#741f26'},
+  text:{color:'#fff',fontSize:17},
+});
+export default App;

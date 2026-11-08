@@ -1,0 +1,6 @@
+Copia SOLO EN TU COMPUTADORA los archivos de tu instalación Windows QUE FUNCIONA:
+- service.json
+- device_state.json
+Este proyecto nunca incluye los archivos personales al distribuir el ZIP.
+IMPORTANTE: el VPKG personal resultante contendrá una COPIA de estos datos.
+NO compartas el VPKG ni lo subas a repositorios públicos.
